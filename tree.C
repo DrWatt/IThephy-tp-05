@@ -8,10 +8,6 @@
 #include <vector>
 #include <cmath>
 #include <Math/PxPyPzE4D.h>
-#include <Math/LorentzVector.h>
-#include <Math/Vector4D.h>
-
-
 
 
 #define PIONMASS 139.5706 //MeV
@@ -30,6 +26,11 @@ vector<float> PionEnergyGen;
 vector<float> ProtonEnergyGen;
 vector<int> PionTrackType;
 vector<int> ProtonTrackType;
+vector<float> IPplus;
+vector<float> IPminus;
+vector<float> chiIPplus;
+vector<float> chiIPminus;
+vector<double> EndVert;
 vector<ROOT::Math::PxPyPzEVector>PionVect4d;
 vector<ROOT::Math::PxPyPzEVector>ProtVect4d;
 vector<ROOT::Math::PxPyPzEVector>TotVect4d;
@@ -44,7 +45,18 @@ TH1F* h4 = new TH1F("DD Mass","DD Mass",320,1080,1160);
 TH1F* h5 = new TH1F("DD Mass Gen","DD Mass Gen",192,1114,1117);
 TH1F* h6 = new TH1F("Error","Error",600,-30,30);
 TH1F* h7 = new TH1F("ErrorGen","ErrorGen",160,-0.4,0.4);
+TH1F* h8 = new TH1F("IPplusL","IPplusL",100,0,20);
+TH1F* h9 = new TH1F("IPminusL","IPminusL",500,0,100);
+TH1F* h10 = new TH1F("chiIPplusL","chiIPplusL",2600,0,2600);
+TH1F* h11 = new TH1F("chiIPminusL","chiIPminusL",2400,0,2400);
 
+TH1F* h12 = new TH1F("ZEndVert","ZEndVert",2800,-200,2600);
+
+TH1F* h13 = new TH1F("IPplusD","IPplusD",100,0,20);
+TH1F* h14 = new TH1F("IPminusD","IPminusD",500,0,100);
+TH1F* h15 = new TH1F("chiIPplusD","chiIPplusD",2600,0,2600);
+TH1F* h16 = new TH1F("chiIPminusD","chiIPminusD",2400,0,2400);
+TH1F* h17 = new TH1F("ZEndVertD","ZEndVertD",2800,-200,2600);
 
 
 
@@ -52,9 +64,12 @@ TH1F* h7 = new TH1F("ErrorGen","ErrorGen",160,-0.4,0.4);
 
 void tree::Loop()
 {
-	TCanvas* c = new TCanvas("c","c");
-	TCanvas* c2 = new TCanvas("c2","c2");
-	TCanvas* c3 = new TCanvas("c3","c3");
+	//TCanvas* c = new TCanvas("c","c");
+	//TCanvas* c2 = new TCanvas("c2","c2");
+	//TCanvas* c3 = new TCanvas("c3","c3");
+  TCanvas* c4 = new TCanvas("c4","c4");
+  TCanvas* c5 = new TCanvas("c5","c5");
+  TCanvas* c6 = new TCanvas("c6","c6");
 
 
 //   In a ROOT session, you can do:
@@ -91,6 +106,8 @@ void tree::Loop()
    		if (ientry < 0) break;
    		nb = fChain->GetEntry(jentry);   nbytes += nb;
    		// if (Cut(ientry) < 0) continue;
+      float t = jentry/1000.;
+      if (t == (int)t) clog <<'\r' << "Entry " << jentry;
       
     	PionMomentum.push_back(this->hminus_PX*this->hminus_PX + this->hminus_PY*this->hminus_PY + this->hminus_PZ*this->hminus_PZ);
     	ProtonMomentum.push_back(this->hplus_PX*this->hplus_PX + this->hplus_PY*this->hplus_PY + this->hplus_PZ*this->hplus_PZ);
@@ -112,64 +129,103 @@ void tree::Loop()
      
     	PionVect4dGen.push_back(ROOT::Math::PxPyPzEVector(hminus_TRUEP_X,hminus_TRUEP_Y,hminus_TRUEP_Z,PionEnergyGen.at(jentry)));
     	ProtVect4dGen.push_back(ROOT::Math::PxPyPzEVector(hplus_TRUEP_X,hplus_TRUEP_Y,hplus_TRUEP_Z,ProtonEnergyGen.at(jentry)));
-	}
 
+      IPplus.push_back(this->hplus_IP_OWNPV);
+      IPminus.push_back(this->hminus_IP_OWNPV);
+      chiIPplus.push_back(this->hplus_IPCHI2_OWNPV);
+      chiIPminus.push_back(this->hminus_IPCHI2_OWNPV);
+      EndVert.push_back(this->V0_ENDVERTEX_Z);
+
+      
+	}
+  clog <<'\n';
    	for (int i = 0; i < PionVect4d.size(); ++i)
    	{
    		
    		TotVect4d.push_back(PionVect4d.at(i)+ProtVect4d.at(i));
    		TotVect4dGen.push_back(PionVect4dGen.at(i)+ProtVect4dGen.at(i));
-        h->Fill(TotVect4d.at(i).M());
-       	h6->Fill(TotVect4d.at(i).M()- LAMBDAMASS);        
-        h1->Fill(TotVect4dGen.at(i).M());
-        h7->Fill(TotVect4dGen.at(i).M()- LAMBDAMASS);
+      h->Fill(TotVect4d.at(i).M());
+      h6->Fill(TotVect4d.at(i).M()- LAMBDAMASS);        
+      h1->Fill(TotVect4dGen.at(i).M());
+      h7->Fill(TotVect4dGen.at(i).M()- LAMBDAMASS);
+      if(PionTrackType.at(i) == 3)
+      {
+        h8->Fill(IPplus.at(i));
+        h9->Fill(IPminus.at(i));
+        h10->Fill(chiIPplus.at(i));
+        h11->Fill(chiIPminus.at(i));
+        h12->Fill(EndVert.at(i));
+        h2->Fill(TotVect4d.at(i).M());
+
+        h3->Fill(TotVect4dGen.at(i).M());
+      }
+      else
+      {
+        h13->Fill(IPplus.at(i));
+        h14->Fill(IPminus.at(i));
+        h15->Fill(chiIPplus.at(i));
+        h16->Fill(chiIPminus.at(i));
+        h17->Fill(EndVert.at(i));
+
+        h4->Fill(TotVect4d.at(i).M());
+
+        h5->Fill(TotVect4dGen.at(i).M());         
+      }
+
+      h12->Fill(EndVert.at(i));
+
+
+
+
    	}
-   	c->Divide(2,1);
-   	c->cd(1);
-   	h->Draw();
-	
-	c->cd(2);
-	h1->Draw();
-	
-   	c->Draw();
+   	//c->Divide(2,1);
+   	//c->cd(1);
+   	//h->Draw();
+    //c->cd(2);
+    //h1->Draw();
+   	//c->Draw();
+   	//h4->SetLineColor(kGreen);
+   	//h5->SetLineColor(kGreen);
+   	//c2->Divide(2,1);
+   	//c2->cd(1);
+   	//h2->Draw();
+   	//h4->Draw("SAME");
+   	//c2->cd(2);
+   	//h3->Draw();
+   	//h5->Draw("SAME");
+   	//c2->Draw();
+   	//c3->Divide(2,1);
+   	//c3->cd(1);
+   	//h6->Draw();
+   	//h6->Fit("gaus");
+   	//c3->cd(2);
+   	//h7->Draw();
+   	//h7->Fit("gaus","","",-0.03,0.04);
+   	//c3->Draw();
+    h13->SetLineColor(kRed);
+    h14->SetLineColor(kRed);
+    h15->SetLineColor(kRed);
+    h16->SetLineColor(kRed);
+    h17->SetLineColor(kRed);
 
-   	for (int i = 0; i < PionVect4d.size(); ++i)
-   	{
-   		if(PionTrackType.at(i) == 3)
-   		{
-        	h2->Fill(TotVect4d.at(i).M());
-
-        	h3->Fill(TotVect4dGen.at(i).M());
-
-
-   		}
-   		else
-   		{
-        	h4->Fill(TotVect4d.at(i).M());
-
-        	h5->Fill(TotVect4dGen.at(i).M());   			
-   		}
-   	}
-   	h4->SetLineColor(kGreen);
-   	h5->SetLineColor(kGreen);
-   	c2->Divide(2,1);
-   	c2->cd(1);
-   	h2->Draw();
-   
-   	h4->Draw("SAME");
-   
-   	c2->cd(2);
-   	h3->Draw();
-
-   	h5->Draw("SAME");
-
-   	c2->Draw();
-   	c3->Divide(2,1);
-   	c3->cd(1);
-   	h6->Draw();
-   	h6->Fit("gaus");
-   	c3->cd(2);
-   	h7->Draw();
-   	h7->Fit("gaus","","",-0.03,0.04);
-   	c3->Draw();
+    c4->Divide(2,1);
+    c4->cd(1);
+    h8->Draw();
+    h13->Draw("SAME");
+    c4->cd(2);
+    h9->Draw();
+    h14->Draw("SAME");
+    c4->Draw();
+    c5->Divide(2,1);
+    c5->cd(1);
+    h10->Draw();
+    h15->Draw("SAME");
+    c5->cd(2);
+    h11->Draw();
+    h16->Draw("SAME");
+    c5->Draw();
+    c6->cd();
+    h12->Draw();
+    h17->Draw("SAME");
+    c6->Draw();
 }
