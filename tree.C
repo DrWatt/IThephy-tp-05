@@ -10,6 +10,7 @@
 #include <Math/PxPyPzE4D.h>
 
 
+
 #define PIONMASS 139.5706 //MeV
 #define PROTMASS 938.27803 //MeV
 #define CSPEED 299792458 // m/s
@@ -60,8 +61,6 @@ TH1F* h17 = new TH1F("ZEndVertD","ZEndVertD",2800,-200,2600);
 
 
 
-
-
 void tree::Loop()
 {
 	//TCanvas* c = new TCanvas("c","c");
@@ -70,6 +69,7 @@ void tree::Loop()
   TCanvas* c4 = new TCanvas("c4","c4");
   TCanvas* c5 = new TCanvas("c5","c5");
   TCanvas* c6 = new TCanvas("c6","c6");
+
 
 
 //   In a ROOT session, you can do:
@@ -136,7 +136,7 @@ void tree::Loop()
       chiIPminus.push_back(this->hminus_IPCHI2_OWNPV);
       EndVert.push_back(this->V0_ENDVERTEX_Z);
 
-      
+
 	}
   clog <<'\n';
    	for (int i = 0; i < PionVect4d.size(); ++i)
@@ -172,7 +172,6 @@ void tree::Loop()
         h5->Fill(TotVect4dGen.at(i).M());         
       }
 
-      h12->Fill(EndVert.at(i));
 
 
 
@@ -228,4 +227,5 @@ void tree::Loop()
     h12->Draw();
     h17->Draw("SAME");
     c6->Draw();
+
 }
