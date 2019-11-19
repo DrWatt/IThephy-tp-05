@@ -8,6 +8,7 @@
 #include <vector>
 #include <cmath>
 #include <Math/PxPyPzE4D.h>
+#include <TLegend.h>
 
 
 
@@ -44,32 +45,33 @@ TH1F* h2 = new TH1F("LL Mass","LL Mass",320,1080,1160);
 TH1F* h3 = new TH1F("LL Mass Gen","LL Mass Gen",192,1114,1117);
 TH1F* h4 = new TH1F("DD Mass","DD Mass",320,1080,1160);
 TH1F* h5 = new TH1F("DD Mass Gen","DD Mass Gen",192,1114,1117);
-TH1F* h6 = new TH1F("Error","Error",600,-30,30);
+TH1F* h6 = new TH1F("Error","Error",150,-30,30);
 TH1F* h7 = new TH1F("ErrorGen","ErrorGen",160,-0.4,0.4);
 TH1F* h8 = new TH1F("IPplusL","IPplusL",100,0,20);
-TH1F* h9 = new TH1F("IPminusL","IPminusL",500,0,100);
-TH1F* h10 = new TH1F("chiIPplusL","chiIPplusL",2600,0,2600);
-TH1F* h11 = new TH1F("chiIPminusL","chiIPminusL",2400,0,2400);
+TH1F* h9 = new TH1F("IPminusL","IPminusL",125,0,100);
+TH1F* h10 = new TH1F("chiIPplusL","chiIPplusL",160,0,2600);
+TH1F* h11 = new TH1F("chiIPminusL","chiIPminusL",150,0,2400);
 
-TH1F* h12 = new TH1F("ZEndVert","ZEndVert",2800,-200,2600);
+TH1F* h12 = new TH1F("ZEndVert","ZEndVert",175,-200,2600);
 
 TH1F* h13 = new TH1F("IPplusD","IPplusD",100,0,20);
-TH1F* h14 = new TH1F("IPminusD","IPminusD",500,0,100);
-TH1F* h15 = new TH1F("chiIPplusD","chiIPplusD",2600,0,2600);
-TH1F* h16 = new TH1F("chiIPminusD","chiIPminusD",2400,0,2400);
-TH1F* h17 = new TH1F("ZEndVertD","ZEndVertD",2800,-200,2600);
+TH1F* h14 = new TH1F("IPminusD","IPminusD",125,0,100);
+TH1F* h15 = new TH1F("chiIPplusD","chiIPplusD",160,0,2600);
+TH1F* h16 = new TH1F("chiIPminusD","chiIPminusD",150,0,2400);
+TH1F* h17 = new TH1F("ZEndVertD","ZEndVertD",175,-200,2600);
 
 
 
 void tree::Loop()
 {
-	//TCanvas* c = new TCanvas("c","c");
-	//TCanvas* c2 = new TCanvas("c2","c2");
-	//TCanvas* c3 = new TCanvas("c3","c3");
+	TCanvas* c = new TCanvas("c","c");
+	TCanvas* c2 = new TCanvas("c2","c2");
+	TCanvas* c3 = new TCanvas("c3","c3");
   TCanvas* c4 = new TCanvas("c4","c4");
   TCanvas* c5 = new TCanvas("c5","c5");
   TCanvas* c6 = new TCanvas("c6","c6");
 
+  auto time0 = chrono::system_clock::now();
 
 
 //   In a ROOT session, you can do:
@@ -177,30 +179,30 @@ void tree::Loop()
 
 
    	}
-   	//c->Divide(2,1);
-   	//c->cd(1);
-   	//h->Draw();
-    //c->cd(2);
-    //h1->Draw();
-   	//c->Draw();
-   	//h4->SetLineColor(kGreen);
-   	//h5->SetLineColor(kGreen);
-   	//c2->Divide(2,1);
-   	//c2->cd(1);
-   	//h2->Draw();
-   	//h4->Draw("SAME");
-   	//c2->cd(2);
-   	//h3->Draw();
-   	//h5->Draw("SAME");
-   	//c2->Draw();
-   	//c3->Divide(2,1);
-   	//c3->cd(1);
-   	//h6->Draw();
-   	//h6->Fit("gaus");
-   	//c3->cd(2);
-   	//h7->Draw();
-   	//h7->Fit("gaus","","",-0.03,0.04);
-   	//c3->Draw();
+   	c->Divide(2,1);
+   	c->cd(1);
+   	h->Draw();
+    c->cd(2);
+    h1->Draw();
+   	c->Draw();
+   	h4->SetLineColor(kGreen);
+   	h5->SetLineColor(kGreen);
+   	c2->Divide(2,1);
+   	c2->cd(1);
+   	h2->Draw();
+   	h4->Draw("SAME");
+   	c2->cd(2);
+   	h3->Draw();
+   	h5->Draw("SAME");
+   	c2->Draw();
+   	c3->Divide(2,1);
+   	c3->cd(1);
+   	h6->Draw();
+   	h6->Fit("gaus");
+   	c3->cd(2);
+   	h7->Draw();
+   	h7->Fit("gaus","","",-0.03,0.04);
+   	c3->Draw();
     h13->SetLineColor(kRed);
     h14->SetLineColor(kRed);
     h15->SetLineColor(kRed);
@@ -211,21 +213,43 @@ void tree::Loop()
     c4->cd(1);
     h8->Draw();
     h13->Draw("SAME");
+    TLegend* leg = new TLegend(0.6,0.8,0.75,0.9);
+    leg->AddEntry(h8);
+    leg->AddEntry(h13);
+    leg->Draw();
     c4->cd(2);
     h9->Draw();
     h14->Draw("SAME");
+    TLegend* leg2 = new TLegend(0.6,0.8,0.75,0.9);
+    leg2->AddEntry(h9);
+    leg2->AddEntry(h14);
+    leg2->Draw();
     c4->Draw();
     c5->Divide(2,1);
     c5->cd(1);
     h10->Draw();
     h15->Draw("SAME");
+    TLegend* leg3 = new TLegend(0.6,0.8,0.75,0.9);
+    leg3->AddEntry(h10);
+    leg3->AddEntry(h15);
+    leg3->Draw();
     c5->cd(2);
     h11->Draw();
     h16->Draw("SAME");
+    TLegend* leg4 = new TLegend(0.6,0.8,0.75,0.9);
+    leg4->AddEntry(h11);
+    leg4->AddEntry(h16);
+    leg4->Draw();
     c5->Draw();
     c6->cd();
     h12->Draw();
     h17->Draw("SAME");
+    TLegend* leg5 = new TLegend(0.6,0.8,0.75,0.9);
+    leg5->AddEntry(h12);
+    leg5->AddEntry(h17);
+    leg5->Draw();
     c6->Draw();
 
+    std::chrono::duration<double> elapsed_seconds = chrono::system_clock::now() - time0;
+    clog << "Macro executed in " << elapsed_seconds.count() << " seconds\n";
 }
