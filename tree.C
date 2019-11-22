@@ -33,6 +33,9 @@ vector<float> IPminus;
 vector<float> chiIPplus;
 vector<float> chiIPminus;
 vector<double> EndVert;
+vector<float> Angle;
+
+
 vector<ROOT::Math::PxPyPzEVector>PionVect4d;
 vector<ROOT::Math::PxPyPzEVector>ProtVect4d;
 vector<ROOT::Math::PxPyPzEVector>TotVect4d;
@@ -60,6 +63,8 @@ TH1F* h15 = new TH1F("chiIPplusD","chiIPplusD",160,0,2600);
 TH1F* h16 = new TH1F("chiIPminusD","chiIPminusD",150,0,2400);
 TH1F* h17 = new TH1F("ZEndVertD","ZEndVertD",175,-200,2600);
 
+TH1F* h18 = new TH1F("AngleL","AngleL",100,0,0.1);
+TH1F* h19 = new TH1F("AngleD","AngleD",100,0,0.1);
 
 
 void tree::Loop()
@@ -70,6 +75,7 @@ void tree::Loop()
   TCanvas* c4 = new TCanvas("c4","c4");
   TCanvas* c5 = new TCanvas("c5","c5");
   TCanvas* c6 = new TCanvas("c6","c6");
+  TCanvas* c7 = new TCanvas("c7","c7");
 
   auto time0 = chrono::system_clock::now();
 
@@ -139,6 +145,9 @@ void tree::Loop()
       EndVert.push_back(this->V0_ENDVERTEX_Z);
 
 
+      Angle.push_back(acos((this->hminus_PX*this->hplus_PX+this->hminus_PY*this->hplus_PY+this->hminus_PZ*this->hplus_PZ)/(PionVect4d.at(jentry).R()*ProtVect4d.at(jentry).R())));
+
+
 	}
   clog <<'\n';
    	for (int i = 0; i < PionVect4d.size(); ++i)
@@ -150,6 +159,9 @@ void tree::Loop()
       h6->Fill(TotVect4d.at(i).M()- LAMBDAMASS);        
       h1->Fill(TotVect4dGen.at(i).M());
       h7->Fill(TotVect4dGen.at(i).M()- LAMBDAMASS);
+
+
+
       if(PionTrackType.at(i) == 3)
       {
         h8->Fill(IPplus.at(i));
@@ -160,6 +172,10 @@ void tree::Loop()
         h2->Fill(TotVect4d.at(i).M());
 
         h3->Fill(TotVect4dGen.at(i).M());
+
+        h18->Fill(Angle.at(i));
+
+
       }
       else
       {
@@ -172,6 +188,8 @@ void tree::Loop()
         h4->Fill(TotVect4d.at(i).M());
 
         h5->Fill(TotVect4dGen.at(i).M());         
+
+        h19->Fill(Angle.at(i));
       }
 
 
@@ -208,6 +226,7 @@ void tree::Loop()
     h15->SetLineColor(kRed);
     h16->SetLineColor(kRed);
     h17->SetLineColor(kRed);
+    h19->SetLineColor(kRed);
 
     c4->Divide(2,1);
     c4->cd(1);
@@ -249,6 +268,16 @@ void tree::Loop()
     leg5->AddEntry(h17);
     leg5->Draw();
     c6->Draw();
+
+
+    c7->cd();
+    h19->Draw();
+    h18->Draw("SAME");
+    TLegend* leg6 = new TLegend(0.6,0.8,0.75,0.9);
+    leg6->AddEntry(h18);
+    leg6->AddEntry(h19);
+    leg6->Draw();
+    c7->Draw();
 
     std::chrono::duration<double> elapsed_seconds = chrono::system_clock::now() - time0;
     clog << "Macro executed in " << elapsed_seconds.count() << " seconds\n";
