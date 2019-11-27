@@ -72,6 +72,7 @@ public :
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
    virtual void     Loop();
+   virtual void     Graphs();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 };

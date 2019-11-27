@@ -9,7 +9,8 @@
 #include <cmath>
 #include <Math/PxPyPzE4D.h>
 #include <TLegend.h>
-
+#include <TGraphErrors.h>
+#include <TH2F.h>
 
 
 #define PIONMASS 139.5706 //MeV
@@ -32,9 +33,12 @@ vector<float> IPplus;
 vector<float> IPminus;
 vector<float> chiIPplus;
 vector<float> chiIPminus;
-vector<double> EndVert;
+vector<float> EndVert;
 vector<float> Angle;
+vector<int> NTracks;
 
+vector<float> Resolution;
+vector<float> GenResolution;
 
 vector<ROOT::Math::PxPyPzEVector>PionVect4d;
 vector<ROOT::Math::PxPyPzEVector>ProtVect4d;
@@ -65,7 +69,6 @@ TH1F* h17 = new TH1F("ZEndVertD","ZEndVertD",175,-200,2600);
 
 TH1F* h18 = new TH1F("AngleL","AngleL",100,0,0.1);
 TH1F* h19 = new TH1F("AngleD","AngleD",100,0,0.1);
-
 
 void tree::Loop()
 {
@@ -150,6 +153,8 @@ void tree::Loop()
 
 	}
   clog <<'\n';
+
+
    	for (int i = 0; i < PionVect4d.size(); ++i)
    	{
    		
@@ -159,7 +164,6 @@ void tree::Loop()
       h6->Fill(TotVect4d.at(i).M()- LAMBDAMASS);        
       h1->Fill(TotVect4dGen.at(i).M());
       h7->Fill(TotVect4dGen.at(i).M()- LAMBDAMASS);
-
 
 
       if(PionTrackType.at(i) == 3)
@@ -197,6 +201,9 @@ void tree::Loop()
 
 
    	}
+    
+
+
    	c->Divide(2,1);
    	c->cd(1);
    	h->Draw();
@@ -282,3 +289,286 @@ void tree::Loop()
     std::chrono::duration<double> elapsed_seconds = chrono::system_clock::now() - time0;
     clog << "Macro executed in " << elapsed_seconds.count() << " seconds\n";
 }
+
+
+
+
+
+
+
+
+
+
+
+void tree::Graphs()
+{
+
+  auto time0 = chrono::system_clock::now();
+
+  
+  TCanvas* c1 = new TCanvas("c1","c1");
+  TCanvas* c2 = new TCanvas("c2","c2");
+  TCanvas* c3 = new TCanvas("c3","c3");
+  TCanvas* c4 = new TCanvas("c4","c4");
+  TCanvas* c5 = new TCanvas("c5","c5");
+  TCanvas* c6 = new TCanvas("c6","c6");
+  TCanvas* c7 = new TCanvas("c7","c7");
+
+  
+
+  TH2F* hh1 = new TH2F ("ResoVsV0","ResoVsV0",1000,-200,800,80,-40,40);
+  TH2F* hh2 = new TH2F ("GenResoVsV0","GenResoVsV0",1000,-200,3000,80,-40,40);
+  TH2F* hh3 = new TH2F ("ResoVsN","ResoVsN",600,0,600,80,-40,40);
+  TH2F* hh4 = new TH2F ("GenResoVsN","GenResoVsN",600,0,600,80,-40,40);
+  TH2F* hh5 = new TH2F ("ResoVsAngle","ResoVsAngle",100,0,0.1,80,-40,40);
+  TH2F* hh6 = new TH2F ("GenResoVsAngle","GenResoVsAngle",100,0,0.1,80,-40,40);
+  TH2F* hh7 = new TH2F ("ResoVsIPPion","ResoVsIPPion",125,0,100,80,-40,40);
+  TH2F* hh8 = new TH2F ("GenResoVsIPPion","GenResoVsIPPion",125,0,100,80,-40,40);
+  TH2F* hh9 = new TH2F ("ResoVsIPProton","ResoVsIPProton",100,0,20,80,-40,40);
+  TH2F* hh10 = new TH2F ("GenResoVsIPProton","GenResoVsIPProton",100,0,20,80,-40,40);
+  TH2F* hh11 = new TH2F ("ResoVsChiIPPion","ResoVsChiIPPion",150,0,2400,80,-40,40);
+  TH2F* hh12 = new TH2F ("GenResoVsChiIPPion","GenResoVsChiIPPion",150,0,2400,80,-40,40);
+  TH2F* hh13 = new TH2F ("ResoVsChiIPProton","ResoVsChiIPProton",160,0,2600,80,-40,40);
+  TH2F* hh14 = new TH2F ("GenResoVsChiIPProton","GenResoVsChiIPProton",160,0,2600,80,-40,40);
+
+
+
+  if (fChain == 0) return;
+
+  Long64_t nentries = fChain->GetEntriesFast();
+
+  Long64_t nbytes = 0, nb = 0;
+
+    for (Long64_t jentry=0; jentry<nentries;jentry++) {
+      Long64_t ientry = LoadTree(jentry);
+      if (ientry < 0) break;
+      nb = fChain->GetEntry(jentry);   nbytes += nb;
+      // if (Cut(ientry) < 0) continue;
+      float t = jentry/1000.;
+      if (t == (int)t) clog <<'\r' << "Entry " << jentry;
+      
+      PionMomentum.push_back(this->hminus_PX*this->hminus_PX + this->hminus_PY*this->hminus_PY + this->hminus_PZ*this->hminus_PZ);
+      ProtonMomentum.push_back(this->hplus_PX*this->hplus_PX + this->hplus_PY*this->hplus_PY + this->hplus_PZ*this->hplus_PZ);
+
+      PionEnergy.push_back(sqrt(PionMomentum.at(jentry) + pow(PIONMASS,2)));
+      ProtonEnergy.push_back(sqrt(ProtonMomentum.at(jentry) + pow(PROTMASS,2)));
+     
+      PionVect4d.push_back(ROOT::Math::PxPyPzEVector(hminus_PX,hminus_PY,hminus_PZ,PionEnergy.at(jentry)));
+      ProtVect4d.push_back(ROOT::Math::PxPyPzEVector(hplus_PX,hplus_PY,hplus_PZ,ProtonEnergy.at(jentry)));
+
+      PionTrackType.push_back(this->hminus_TRACK_Type);
+      ProtonTrackType.push_back(this->hplus_TRACK_Type);
+
+      PionMomentumGen.push_back(this->hminus_TRUEP_X*this->hminus_TRUEP_X + this->hminus_TRUEP_Y*this->hminus_TRUEP_Y + this->hminus_TRUEP_Z*this->hminus_TRUEP_Z);
+      ProtonMomentumGen.push_back(this->hplus_TRUEP_X*this->hplus_TRUEP_X + this->hplus_TRUEP_Y*this->hplus_TRUEP_Y + this->hplus_TRUEP_Z*this->hplus_TRUEP_Z);
+
+      PionEnergyGen.push_back(sqrt(PionMomentumGen.at(jentry) + pow(PIONMASS,2)));
+      ProtonEnergyGen.push_back(sqrt(ProtonMomentumGen.at(jentry) + pow(PROTMASS,2)));
+     
+      PionVect4dGen.push_back(ROOT::Math::PxPyPzEVector(hminus_TRUEP_X,hminus_TRUEP_Y,hminus_TRUEP_Z,PionEnergyGen.at(jentry)));
+      ProtVect4dGen.push_back(ROOT::Math::PxPyPzEVector(hplus_TRUEP_X,hplus_TRUEP_Y,hplus_TRUEP_Z,ProtonEnergyGen.at(jentry)));
+
+      IPplus.push_back(this->hplus_IP_OWNPV);
+      IPminus.push_back(this->hminus_IP_OWNPV);
+      chiIPplus.push_back(this->hplus_IPCHI2_OWNPV);
+      chiIPminus.push_back(this->hminus_IPCHI2_OWNPV);
+      EndVert.push_back(this->V0_ENDVERTEX_Z);
+
+
+      Angle.push_back(acos((this->hminus_PX*this->hplus_PX+this->hminus_PY*this->hplus_PY+this->hminus_PZ*this->hplus_PZ)/(PionVect4d.at(jentry).R()*ProtVect4d.at(jentry).R())));
+      NTracks.push_back(this->nTracks);
+  }
+clog << '\n';
+for (int i = 0; i < PionVect4d.size(); ++i)
+    {
+      
+      TotVect4d.push_back(PionVect4d.at(i)+ProtVect4d.at(i));
+      TotVect4dGen.push_back(PionVect4dGen.at(i)+ProtVect4dGen.at(i));
+      h->Fill(TotVect4d.at(i).M());
+      h6->Fill(TotVect4d.at(i).M()- LAMBDAMASS);        
+      h1->Fill(TotVect4dGen.at(i).M());
+      h7->Fill(TotVect4dGen.at(i).M()- LAMBDAMASS);
+
+      Resolution.push_back(TotVect4d.at(i).M()- LAMBDAMASS);
+      GenResolution.push_back(TotVect4dGen.at(i).M()- LAMBDAMASS);
+
+      hh1->Fill(EndVert.at(i),Resolution.at(i));
+      hh3->Fill(NTracks.at(i),Resolution.at(i));
+      hh5->Fill(Angle.at(i),Resolution.at(i));
+      hh7->Fill(IPminus.at(i),Resolution.at(i));
+      hh9->Fill(IPplus.at(i),Resolution.at(i));
+      hh11->Fill(chiIPminus.at(i),Resolution.at(i));
+      hh13->Fill(chiIPplus.at(i),Resolution.at(i));
+
+      hh2->Fill(EndVert.at(i),GenResolution.at(i));
+      hh4->Fill(NTracks.at(i),GenResolution.at(i));
+      hh6->Fill(Angle.at(i),GenResolution.at(i));
+      hh8->Fill(IPminus.at(i),GenResolution.at(i));
+      hh10->Fill(IPplus.at(i),GenResolution.at(i));
+      hh12->Fill(chiIPminus.at(i),GenResolution.at(i));
+      hh14->Fill(chiIPplus.at(i),GenResolution.at(i));
+
+      if(PionTrackType.at(i) == 3)
+      {
+        h8->Fill(IPplus.at(i));
+        h9->Fill(IPminus.at(i));
+        h10->Fill(chiIPplus.at(i));
+        h11->Fill(chiIPminus.at(i));
+        h12->Fill(EndVert.at(i));
+        h2->Fill(TotVect4d.at(i).M());
+
+        h3->Fill(TotVect4dGen.at(i).M());
+
+        h18->Fill(Angle.at(i));
+
+
+
+
+      }
+      else
+      {
+
+        h13->Fill(IPplus.at(i));
+        h14->Fill(IPminus.at(i));
+        h15->Fill(chiIPplus.at(i));
+        h16->Fill(chiIPminus.at(i));
+        h17->Fill(EndVert.at(i));
+
+        h4->Fill(TotVect4d.at(i).M());
+
+        h5->Fill(TotVect4dGen.at(i).M());         
+
+        h19->Fill(Angle.at(i));
+
+
+
+      }
+    }
+
+
+
+  //TGraphErrors* g = new TGraphErrors(TotVect4d.size(),EndVert.data(),Resolution.data());
+  
+
+
+
+
+  //g->GetXaxis()->SetTitle("V0");
+  //g->GetYaxis()->SetTitle("Reso");
+  hh1->SetXTitle("V0");
+  hh1->SetYTitle("Resolution");
+  hh2->SetXTitle("V0");
+  hh2->SetYTitle("Resolution");
+
+  hh3->SetXTitle("N. Tracks");
+  hh3->SetYTitle("Resolution");
+  hh4->SetXTitle("N. Tracks");
+  hh4->SetYTitle("Resolution");
+
+  hh5->SetXTitle("Angle");
+  hh5->SetYTitle("Resolution");
+  hh6->SetXTitle("Angle");
+  hh6->SetYTitle("Resolution");
+
+  hh7->SetXTitle("IP Pion");
+  hh7->SetYTitle("Resolution");
+  hh8->SetXTitle("IP Pion");
+  hh8->SetYTitle("Resolution");
+
+  hh9->SetXTitle("IP Proton");
+  hh9->SetYTitle("Resolution");
+  hh10->SetXTitle("IP Proton");
+  hh10->SetYTitle("Resolution");
+
+  hh11->SetXTitle("Chi IP Pion");
+  hh11->SetYTitle("Resolution");
+  hh12->SetXTitle("Chi IP Pion");
+  hh12->SetYTitle("Resolution");
+
+  hh13->SetXTitle("Chi IP Proton");
+  hh13->SetYTitle("Resolution");
+  hh14->SetXTitle("Chi IP Proton");
+  hh14->SetYTitle("Resolution");
+
+  gStyle->SetOptStat(0);
+
+  c1->Divide(2,1);
+  c1->cd(1);
+  hh1->Draw("colz");
+  c1->cd(2);
+  hh2->Draw("colz");
+  c1->Draw();
+
+
+  c2->Divide(2,1);
+  c2->cd(1);
+  hh3->Draw("colz");
+  c2->cd(2);
+  hh4->Draw("colz");
+  c2->Draw();
+
+
+  c3->Divide(2,1);
+  c3->cd(1);
+  hh5->Draw("colz");
+  c3->cd(2);
+  hh6->Draw("colz");
+  c3->Draw();
+  
+
+  c4->Divide(2,1);
+  c4->cd(1);
+  hh7->Draw("colz");
+  c4->cd(2);
+  hh8->Draw("colz");
+  c4->Draw();
+  
+
+  c5->Divide(2,1);
+  c5->cd(1);
+  hh9->Draw("colz");
+  c5->cd(2);
+  hh10->Draw("colz");
+  c5->Draw();
+  
+
+  c6->Divide(2,1);
+  c6->cd(1);
+  hh11->Draw("colz");
+  c6->cd(2);
+  hh12->Draw("colz");
+  c6->Draw();
+  
+
+  c7->Divide(2,1);
+  c7->cd(1);
+  hh13->Draw("colz");
+  c7->cd(2);
+  hh14->Draw("colz");
+  c7->Draw();
+  
+
+TFile* outg = new TFile("graphs.root", "UPDATE");
+    if ( outg->IsOpen() ) printf("File opened successfully\n");
+
+  c1->Write();
+  c2->Write();
+  c3->Write();
+  c4->Write();
+  c5->Write();
+  c6->Write();
+  c7->Write();
+
+outg->Close();
+
+  std::chrono::duration<double> elapsed_seconds = chrono::system_clock::now() - time0;
+  clog << "Macro executed in " << elapsed_seconds.count() << " seconds\n";
+
+
+
+}
+
+
+
+
+
