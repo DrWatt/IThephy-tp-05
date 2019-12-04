@@ -313,23 +313,29 @@ void tree::Graphs()
   TCanvas* c5 = new TCanvas("c5","c5");
   TCanvas* c6 = new TCanvas("c6","c6");
   TCanvas* c7 = new TCanvas("c7","c7");
+  TCanvas* c8 = new TCanvas("c8","c8");
+  TCanvas* c9 = new TCanvas("c9","c9");
 
   
 
-  TH2F* hh1 = new TH2F ("ResoVsV0","ResoVsV0",1000,-200,800,80,-40,40);
-  TH2F* hh2 = new TH2F ("GenResoVsV0","GenResoVsV0",1000,-200,3000,80,-40,40);
-  TH2F* hh3 = new TH2F ("ResoVsN","ResoVsN",600,0,600,80,-40,40);
-  TH2F* hh4 = new TH2F ("GenResoVsN","GenResoVsN",600,0,600,80,-40,40);
-  TH2F* hh5 = new TH2F ("ResoVsAngle","ResoVsAngle",100,0,0.1,80,-40,40);
-  TH2F* hh6 = new TH2F ("GenResoVsAngle","GenResoVsAngle",100,0,0.1,80,-40,40);
-  TH2F* hh7 = new TH2F ("ResoVsIPPion","ResoVsIPPion",125,0,100,80,-40,40);
-  TH2F* hh8 = new TH2F ("GenResoVsIPPion","GenResoVsIPPion",125,0,100,80,-40,40);
-  TH2F* hh9 = new TH2F ("ResoVsIPProton","ResoVsIPProton",100,0,20,80,-40,40);
-  TH2F* hh10 = new TH2F ("GenResoVsIPProton","GenResoVsIPProton",100,0,20,80,-40,40);
-  TH2F* hh11 = new TH2F ("ResoVsChiIPPion","ResoVsChiIPPion",150,0,2400,80,-40,40);
-  TH2F* hh12 = new TH2F ("GenResoVsChiIPPion","GenResoVsChiIPPion",150,0,2400,80,-40,40);
-  TH2F* hh13 = new TH2F ("ResoVsChiIPProton","ResoVsChiIPProton",160,0,2600,80,-40,40);
-  TH2F* hh14 = new TH2F ("GenResoVsChiIPProton","GenResoVsChiIPProton",160,0,2600,80,-40,40);
+  TH2F* hh1 = new TH2F ("ResoVsV0","ResoVsV0",100,-200,3000,80,0,80);
+  TH2F* hh2 = new TH2F ("GenResoVsV0","GenResoVsV0",100,-200,3000,80,0,80);
+  TH2F* hh3 = new TH2F ("ResoVsN","ResoVsN",60,0.5,600.5,80,0,80);
+  TH2F* hh4 = new TH2F ("GenResoVsN","GenResoVsN",60,0.5,600.5,80,0,80);
+  TH2F* hh5 = new TH2F ("ResoVsAngle","ResoVsAngle",100,0,0.1,80,0,80);
+  TH2F* hh6 = new TH2F ("GenResoVsAngle","GenResoVsAngle",100,0,0.1,80,0,80);
+  TH2F* hh7 = new TH2F ("ResoVsIPPion","ResoVsIPPion",100,0,100,80,0,80);
+  TH2F* hh8 = new TH2F ("GenResoVsIPPion","GenResoVsIPPion",100,0,100,80,0,80);
+  TH2F* hh9 = new TH2F ("ResoVsIPProton","ResoVsIPProton",100,0,20,80,0,80);
+  TH2F* hh10 = new TH2F ("GenResoVsIPProton","GenResoVsIPProton",100,0,20,80,0,80);
+  TH2F* hh11 = new TH2F ("ResoVsChiIPPion","ResoVsChiIPPion",100,0,2400,80,0,80);
+  TH2F* hh12 = new TH2F ("GenResoVsChiIPPion","GenResoVsChiIPPion",100,0,2400,80,0,80);
+  TH2F* hh13 = new TH2F ("ResoVsChiIPProton","ResoVsChiIPProton",100,0,2600,80,0,80);
+  TH2F* hh14 = new TH2F ("GenResoVsChiIPProton","GenResoVsChiIPProton",100,0,2600,80,0,80);
+  TH2F* hh15 = new TH2F ("ResoVsPionMom","ResoVsPionMom",100,0,3000,80,0,80);
+  TH2F* hh16 = new TH2F ("GenResoVsPionMom","GenResoVsPionMom",100,0,3000,80,0,80);
+  TH2F* hh17 = new TH2F ("ResoVsProtonMom","ResoVsProtonMom",100,0,10000,80,0,80);
+  TH2F* hh18 = new TH2F ("GenResoVsProtonMom","GenResoVsProtonMom",100,0,10000,80,0,80);
 
 
 
@@ -392,21 +398,25 @@ for (int i = 0; i < PionVect4d.size(); ++i)
       Resolution.push_back(TotVect4d.at(i).M()- LAMBDAMASS);
       GenResolution.push_back(TotVect4dGen.at(i).M()- LAMBDAMASS);
 
-      hh1->Fill(EndVert.at(i),Resolution.at(i));
-      hh3->Fill(NTracks.at(i),Resolution.at(i));
-      hh5->Fill(Angle.at(i),Resolution.at(i));
-      hh7->Fill(IPminus.at(i),Resolution.at(i));
-      hh9->Fill(IPplus.at(i),Resolution.at(i));
-      hh11->Fill(chiIPminus.at(i),Resolution.at(i));
-      hh13->Fill(chiIPplus.at(i),Resolution.at(i));
+      hh1->Fill(EndVert.at(i),abs(Resolution.at(i)));
+      hh3->Fill(NTracks.at(i),abs(Resolution.at(i)));
+      hh5->Fill(Angle.at(i),abs(Resolution.at(i)));
+      hh7->Fill(IPminus.at(i),abs(Resolution.at(i)));
+      hh9->Fill(IPplus.at(i),abs(Resolution.at(i)));
+      hh11->Fill(chiIPminus.at(i),abs(Resolution.at(i)));
+      hh13->Fill(chiIPplus.at(i),abs(Resolution.at(i)));
+      hh15->Fill(PionMomentum.at(i)/1000000,abs(Resolution.at(i)));
+      hh17->Fill(ProtonMomentum.at(i)/1000000,abs(Resolution.at(i)));
 
-      hh2->Fill(EndVert.at(i),GenResolution.at(i));
-      hh4->Fill(NTracks.at(i),GenResolution.at(i));
-      hh6->Fill(Angle.at(i),GenResolution.at(i));
-      hh8->Fill(IPminus.at(i),GenResolution.at(i));
-      hh10->Fill(IPplus.at(i),GenResolution.at(i));
-      hh12->Fill(chiIPminus.at(i),GenResolution.at(i));
-      hh14->Fill(chiIPplus.at(i),GenResolution.at(i));
+      hh2->Fill(EndVert.at(i),abs(GenResolution.at(i)));
+      hh4->Fill(NTracks.at(i),abs(GenResolution.at(i)));
+      hh6->Fill(Angle.at(i),abs(GenResolution.at(i)));
+      hh8->Fill(IPminus.at(i),abs(GenResolution.at(i)));
+      hh10->Fill(IPplus.at(i),abs(GenResolution.at(i)));
+      hh12->Fill(chiIPminus.at(i),abs(GenResolution.at(i)));
+      hh14->Fill(chiIPplus.at(i),abs(GenResolution.at(i)));
+      hh16->Fill(PionMomentum.at(i)/1000000,abs(GenResolution.at(i)));
+      hh18->Fill(ProtonMomentum.at(i)/1000000,abs(GenResolution.at(i)));
 
       if(PionTrackType.at(i) == 3)
       {
@@ -490,8 +500,55 @@ for (int i = 0; i < PionVect4d.size(); ++i)
   hh14->SetXTitle("Chi IP Proton");
   hh14->SetYTitle("Resolution");
 
+  hh15->SetXTitle("Pion Momentum");
+  hh15->SetYTitle("Resolution");
+  hh16->SetXTitle("Pion Momentum");
+  hh16->SetYTitle("Resolution");
+
+  hh17->SetXTitle("Proton Momentum");
+  hh17->SetYTitle("Resolution");
+  hh18->SetXTitle("Proton Momentum");
+  hh18->SetYTitle("Resolution");
+
   gStyle->SetOptStat(0);
 
+//hh1->Scale((1/hh1->Integral()),"width");
+//hh2->Scale((1/(271815))*100);
+//clog << hh1->Integral() <<endl;
+  int k=0;
+  for (int i = 1; i < hh5->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh5->GetNbinsY(); ++j)
+    {
+      k+=hh5->GetBinContent(hh5->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh5->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh5->SetBinContent(hh5->GetBin(i,j),hh5->GetBinContent(hh5->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+  for (int i = 1; i < hh6->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh6->GetNbinsY(); ++j)
+    {
+      k+=hh6->GetBinContent(hh6->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh6->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh6->SetBinContent(hh6->GetBin(i,j),hh6->GetBinContent(hh6->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+  
+  
   c1->Divide(2,1);
   c1->cd(1);
   hh1->Draw("colz");
@@ -546,20 +603,34 @@ for (int i = 0; i < PionVect4d.size(); ++i)
   c7->cd(2);
   hh14->Draw("colz");
   c7->Draw();
+
+  c8->Divide(2,1);
+  c8->cd(1);
+  hh15->Draw("colz");
+  c8->cd(2);
+  hh16->Draw("colz");
+  c8->Draw();
+
+  c9->Divide(2,1);
+  c9->cd(1);
+  hh17->Draw("colz");
+  c9->cd(2);
+  hh18->Draw("colz");
+  c9->Draw();
   
 
-TFile* outg = new TFile("graphs.root", "UPDATE");
-    if ( outg->IsOpen() ) printf("File opened successfully\n");
-
-  c1->Write();
-  c2->Write();
-  c3->Write();
-  c4->Write();
-  c5->Write();
-  c6->Write();
-  c7->Write();
-
-outg->Close();
+//TFile* outg = new TFile("graphs.root", "UPDATE");
+//    if ( outg->IsOpen() ) printf("File opened successfully\n");
+//
+//  c1->Write();
+//  c2->Write();
+//  c3->Write();
+//  c4->Write();
+//  c5->Write();
+//  c6->Write();
+//  c7->Write();
+//
+//outg->Close();
 
   std::chrono::duration<double> elapsed_seconds = chrono::system_clock::now() - time0;
   clog << "Macro executed in " << elapsed_seconds.count() << " seconds\n";
