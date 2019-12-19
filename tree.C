@@ -515,7 +515,42 @@ for (int i = 0; i < PionVect4d.size(); ++i)
 //hh1->Scale((1/hh1->Integral()),"width");
 //hh2->Scale((1/(271815))*100);
 //clog << hh1->Integral() <<endl;
+
   int k=0;
+
+    for (int i = 1; i < hh1->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh1->GetNbinsY(); ++j)
+    {
+      k+=hh1->GetBinContent(hh1->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh1->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh1->SetBinContent(hh1->GetBin(i,j),hh1->GetBinContent(hh1->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+    for (int i = 1; i < hh3->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh3->GetNbinsY(); ++j)
+    {
+      k+=hh3->GetBinContent(hh3->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh3->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh3->SetBinContent(hh3->GetBin(i,j),hh3->GetBinContent(hh3->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+
   for (int i = 1; i < hh5->GetNbinsX(); ++i)
   {
     for (int j = 1; j < hh5->GetNbinsY(); ++j)
@@ -527,6 +562,134 @@ for (int i = 0; i < PionVect4d.size(); ++i)
     {
 
       if(k!=0) hh5->SetBinContent(hh5->GetBin(i,j),hh5->GetBinContent(hh5->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+    for (int i = 1; i < hh7->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh7->GetNbinsY(); ++j)
+    {
+      k+=hh7->GetBinContent(hh7->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh7->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh7->SetBinContent(hh7->GetBin(i,j),hh7->GetBinContent(hh7->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+    for (int i = 1; i < hh9->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh9->GetNbinsY(); ++j)
+    {
+      k+=hh9->GetBinContent(hh9->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh9->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh9->SetBinContent(hh9->GetBin(i,j),hh9->GetBinContent(hh9->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+    for (int i = 1; i < hh11->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh11->GetNbinsY(); ++j)
+    {
+      k+=hh11->GetBinContent(hh11->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh11->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh11->SetBinContent(hh11->GetBin(i,j),hh11->GetBinContent(hh11->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+    for (int i = 1; i < hh13->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh13->GetNbinsY(); ++j)
+    {
+      k+=hh13->GetBinContent(hh13->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh13->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh13->SetBinContent(hh13->GetBin(i,j),hh13->GetBinContent(hh13->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+    for (int i = 1; i < hh15->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh15->GetNbinsY(); ++j)
+    {
+      k+=hh15->GetBinContent(hh15->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh15->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh15->SetBinContent(hh15->GetBin(i,j),hh15->GetBinContent(hh15->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+    for (int i = 1; i < hh17->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh17->GetNbinsY(); ++j)
+    {
+      k+=hh17->GetBinContent(hh17->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh17->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh17->SetBinContent(hh17->GetBin(i,j),hh17->GetBinContent(hh17->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+  for (int i = 1; i < hh2->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh2->GetNbinsY(); ++j)
+    {
+      k+=hh2->GetBinContent(hh2->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh2->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh2->SetBinContent(hh2->GetBin(i,j),hh2->GetBinContent(hh2->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+  for (int i = 1; i < hh4->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh4->GetNbinsY(); ++j)
+    {
+      k+=hh4->GetBinContent(hh4->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh4->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh4->SetBinContent(hh4->GetBin(i,j),hh4->GetBinContent(hh4->GetBin(i,j))/k);
     }
     k=0;
     
@@ -547,6 +710,104 @@ for (int i = 0; i < PionVect4d.size(); ++i)
     k=0;
     
   }
+
+  for (int i = 1; i < hh8->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh8->GetNbinsY(); ++j)
+    {
+      k+=hh8->GetBinContent(hh8->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh8->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh8->SetBinContent(hh8->GetBin(i,j),hh8->GetBinContent(hh8->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+  for (int i = 1; i < hh10->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh10->GetNbinsY(); ++j)
+    {
+      k+=hh10->GetBinContent(hh10->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh10->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh10->SetBinContent(hh10->GetBin(i,j),hh10->GetBinContent(hh10->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+  for (int i = 1; i < hh12->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh12->GetNbinsY(); ++j)
+    {
+      k+=hh12->GetBinContent(hh12->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh12->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh12->SetBinContent(hh12->GetBin(i,j),hh12->GetBinContent(hh12->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+  for (int i = 1; i < hh14->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh14->GetNbinsY(); ++j)
+    {
+      k+=hh14->GetBinContent(hh14->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh14->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh14->SetBinContent(hh14->GetBin(i,j),hh14->GetBinContent(hh14->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+  for (int i = 1; i < hh16->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh16->GetNbinsY(); ++j)
+    {
+      k+=hh16->GetBinContent(hh16->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh16->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh16->SetBinContent(hh16->GetBin(i,j),hh16->GetBinContent(hh16->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+  for (int i = 1; i < hh18->GetNbinsX(); ++i)
+  {
+    for (int j = 1; j < hh18->GetNbinsY(); ++j)
+    {
+      k+=hh18->GetBinContent(hh18->GetBin(i,j));
+    }
+
+    for (int j = 1; j < hh18->GetNbinsY(); ++j)
+    {
+
+      if(k!=0) hh18->SetBinContent(hh18->GetBin(i,j),hh18->GetBinContent(hh18->GetBin(i,j))/k);
+    }
+    k=0;
+    
+  }
+
+
   
   
   c1->Divide(2,1);
