@@ -62,13 +62,18 @@ def main(args):
     '''
 
     #First of all: Tracks
-    variables = ["nTracks"]
-    units = [""]
-    Limits = [[0, 167, 333, 500]]
+    variables = ["nTracks", "V0_ENDVERTEX_Z"]
+    units = ["", ""]
+    if args.down == 1: #There are other Limits for different Track types
+        #Down
+        Limits = [[0, 167, 333, 500], [-200, 800, 1800, 2800]]
+    else:
+        #Long
+        Limits = [[0, 167, 333, 500], [-200, 100, 400, 700]]
     for i in range(len(variables)):
         temp = data.drop(data[data["{}".format(variables[i])] >= Limits[i][1]].index)
-        temp2 = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][2]) | (data["{}".format(variables[i])] <= Limits[i][1])].index)
-        temp3 = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][3]) | (data["{}".format(variables[i])] <= Limits[i][2])].index)
+        temp2 = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][2]) | (data["{}".format(variables[i])] < Limits[i][1])].index)
+        temp3 = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][3]) | (data["{}".format(variables[i])] < Limits[i][2])].index)
 
         plt.hist(temp["{}".format(variables[i])], bins=83, range=(Limits[i][0], Limits[i][3]), color = 'orange', label='low {}'.format(variables[i]))
         plt.hist(temp2["{}".format(variables[i])], bins=83, range=(Limits[i][0], Limits[i][3]), color = 'green', label='intermediate {}'.format(variables[i]))
