@@ -9,6 +9,9 @@ from matplotlib.backends.backend_pdf import PdfPages
 #import root_pandas
 
 def main(args):
+    #filename = args.save.replace('.pdf', '') + '_Data.json'
+    #file = open(filename, 'wb')
+    #np.savetxt(file, ["Calculated Parameters\n"], "%s")
 
     data = read_root(args.file)
     pp = PdfPages(args.save)
@@ -95,13 +98,21 @@ def main(args):
         plt.grid()
         pp.savefig()
         plt.clf()
+        #np.savetxt(file, [temp["Resolution"].mean()])
+        print('-----------------------')
+        print("low {} mean:".format(variables[i]), temp["Resolution"].mean())
+        print("low {} std:".format(variables[i]), temp["Resolution"].std())
+        print("intermediate {} mean:".format(variables[i]), temp2["Resolution"].mean())
+        print("intermediate {} std:".format(variables[i]), temp2["Resolution"].std())
+        print("high {} mean:".format(variables[i]), temp3["Resolution"].mean())
+        print("high {} std:".format(variables[i]), temp3["Resolution"].std())
+
 
 
 
 
     pp.close()
-    #print(data["B_M"])
-
+    #file.close()
 
 if __name__ == '__main__':
 
