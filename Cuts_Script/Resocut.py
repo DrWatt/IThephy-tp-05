@@ -54,23 +54,31 @@ def main(args):
     data["Resolution"] = data.Lambda_M_TRUE - data.Lambda_M
 
     variables = ["nTracks"]
-    V0Stuff = ["V0_ENDVERTEX_Z", "V0_ENDVERTEX_X", "V0_ENDVERTEX_Y", "V0_ENDVERTEX_CHI2"]
-    variables.extend(V0Stuff)
+    V0Vars = ["V0_ENDVERTEX_Z", "V0_ENDVERTEX_X", "V0_ENDVERTEX_Y", "V0_ENDVERTEX_CHI2"]
+    hIPVars = ["hplus_IP_OWNPV", "hminus_IP_OWNPV", "hplus_IPCHI2_OWNPV", "hminus_IPCHI2_OWNPV"]
+    variables.extend(V0Vars)
+    variables.extend(hIPVars)
 
     units = [""]
-    V0units = ["", "", "", ""]
-    units.extend(V0units)
+    V0Units = ["", "", "", ""]
+    hIPUnits = ["", "", "", ""]
+    units.extend(V0Units)
+    units.extend(hIPUnits)
+
+    Limits = [[0, 167, 333, 500]]#nTracks
     if args.down == 1: #There are other Limits for different Track types
         #Down == 5
-        Limits = [[0, 167, 333, 500]]
         V0Limits = [[-200, 800, 1800, 2800], [-500, -167, 167,500], [-500, -167, 167,500], [0, 5, 10, 15]]
+        hIPLimits = [[0,7,14,21], [0,33,67,100], [0,133,267,400], [0,320,640,960]]
         rng = 40 #range
     else:
         #Long == 3
-        Limits = [[0, 167, 333, 500]]
         V0Limits = [[-200, 100, 400, 700], [-35, -12, 12, 35], [-35, -12, 12, 35], [0 , 7, 14, 21]]
+        hIPLimits = [[0,2,4,6], [0,8,16,24], [0,2000,4000,6000], [0,1000,2000,3000]]
         rng = 20
     Limits.extend(V0Limits)
+    Limits.extend(hIPLimits)
+
     for i in range(len(variables)):
         temp = data.drop(data[data["{}".format(variables[i])] >= Limits[i][1]].index)
         temp2 = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][2]) | (data["{}".format(variables[i])] < Limits[i][1])].index)
@@ -89,13 +97,13 @@ def main(args):
         pp.savefig()
         plt.clf()
 
-        plt.hist(temp["Resolution"], bins=100, range=(-rng,rng), color = 'orange', density=True, histtype='step', label='low {}'.format(variables[i]))
+        plt.hist(temp["Resolution"], bins=100, range=(-rng,rng), color = 'orange', density=True, histtype='step', label='low'.format(variables[i]))
         #pp.savefig()
         #plt.clf()
-        plt.hist(temp2["Resolution"], bins=100, range=(-rng,rng), color = 'green', density=True, histtype='step', label='intermediate {}'.format(variables[i]))
+        plt.hist(temp2["Resolution"], bins=100, range=(-rng,rng), color = 'green', density=True, histtype='step', label='intermediate'.format(variables[i]))
         #pp.savefig()
         #plt.clf()
-        plt.hist(temp3["Resolution"], bins=100, range=(-rng,rng), color = 'steelblue', density=True, histtype='step', label='high {}'.format(variables[i]))
+        plt.hist(temp3["Resolution"], bins=100, range=(-rng,rng), color = 'steelblue', density=True, histtype='step', label='high'.format(variables[i]))
 
         plt.xlabel("Resolution")
         plt.ylabel("Normalized arbitrary units")
