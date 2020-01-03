@@ -57,17 +57,21 @@ def main(args):
     V0Vars = ["V0_ENDVERTEX_Z", "V0_ENDVERTEX_X", "V0_ENDVERTEX_Y", "V0_ENDVERTEX_CHI2"]
     hIPVars = ["hplus_IP_OWNPV", "hminus_IP_OWNPV", "hplus_IPCHI2_OWNPV", "hminus_IPCHI2_OWNPV"]
     hplusP = ["hplus_PX", "hplus_PY", "hplus_PZ", "hplus_P"]
+    hminusP = ["hminus_PX", "hminus_PY", "hminus_PZ", "hminus_P"]
     variables.extend(V0Vars)
     variables.extend(hIPVars)
     variables.extend(hplusP)
+    variables.extend(hminusP)
 
     units = [""]
     V0Units = ["", "", "", ""]
     hIPUnits = ["", "", "", ""]
     hplusPUnits = ["MeV / c", "MeV / c", "MeV / c", "MeV / c"]
+    hminusPUnits = ["MeV / c", "MeV / c", "MeV / c", "MeV / c"]
     units.extend(V0Units)
     units.extend(hIPUnits)
     units.extend(hplusPUnits)
+    units.extend(hminusPUnits)
 
     Limits = [[0, 167, 333, 500]]#nTracks
     if args.down == 1: #There are other Limits for different Track types
@@ -75,16 +79,19 @@ def main(args):
         V0Limits = [[-200, 800, 1800, 2800], [-500, -167, 167,500], [-500, -167, 167,500], [0, 5, 10, 15]]
         hIPLimits = [[0,7,14,21], [0,33,67,100], [0,133,267,400], [0,320,640,960]]
         HpPLimits = [[-12000,-4000,4000,12000], [-12000,-4000,4000,12000], [0,58000,106000,175000], [0,58000,106000,175000]]
+        HmPLimits = [[-2500,-800,800,2500], [-2500,-800,800,2500], [0,12000,24000,36000], [0,12000,24000,36000]]
         rng = 40 #range
     else:
         #Long == 3
         V0Limits = [[-200, 100, 400, 700], [-35, -12, 12, 35], [-35, -12, 12, 35], [0 , 7, 14, 21]]
         hIPLimits = [[0,2,4,6], [0,8,16,24], [0,2000,4000,6000], [0,1000,2000,3000]]
         HpPLimits = [[-9000,-3000,3000,9000], [-8000,-2667,2667,8000], [0,60000,120000,180000], [0,60000,120000,180000]]
+        HmPLimits = [[-1800,-600,600,1800], [-1800,-600,600,1800], [0,12000,24000,36000], [0,12000,24000,36000]]
         rng = 20
     Limits.extend(V0Limits)
     Limits.extend(hIPLimits)
     Limits.extend(HpPLimits)
+    Limits.extend(HmPLimits)
 
     for i in range(len(variables)):
         temp = data.drop(data[data["{}".format(variables[i])] >= Limits[i][1]].index)
