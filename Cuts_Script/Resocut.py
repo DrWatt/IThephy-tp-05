@@ -81,31 +81,18 @@ def main(args):
     units.extend(hplusPUnits)
     units.extend(hminusPUnits)
 
-    Limits = [[0, 167, 333, 500]]#nTracks
-    if args.down == 1: #There are other Limits for different Track types
-        #Down == 5
-        V0Limits = [[-200, 800, 1800, 2800], [-500, -167, 167,500], [-500, -167, 167,500], [0, 5, 10, 15]]
-        V0AdvLimits = [[1101,1111,1121,1131], [0,900,1800,2700], [-3000,8000,19000,30000]]
-        LambdaLimits = [[0,67000,134000,200000]]
-        hIPLimits = [[0,7,14,21], [0,33,67,100], [0,133,267,400], [0,320,640,960]]
-        HpPLimits = [[-12000,-4000,4000,12000], [-12000,-4000,4000,12000], [0,58000,106000,175000], [0,58000,106000,175000]]
-        HmPLimits = [[-2500,-800,800,2500], [-2500,-800,800,2500], [0,12000,24000,36000], [0,12000,24000,36000]]
-        rng = 40 #range
-    else:
-        #Long == 3
-        V0Limits = [[-200, 100, 400, 700], [-35, -12, 12, 35], [-35, -12, 12, 35], [0 , 2.3, 4.7, 7]]
-        V0AdvLimits = [[1104,1112,1120,1128], [0,233,467,700], [-3000,8000,19000,30000]]
-        LambdaLimits = [[0,67000,134000,200000]]
-        hIPLimits = [[0,2,4,6], [0,8,16,24], [0,2000,4000,6000], [0,1000,2000,3000]]
-        HpPLimits = [[-9000,-3000,3000,9000], [-8000,-2667,2667,8000], [0,60000,120000,180000], [0,60000,120000,180000]]
-        HmPLimits = [[-1800,-600,600,1800], [-1800,-600,600,1800], [0,12000,24000,36000], [0,12000,24000,36000]]
-        rng = 20
-    Limits.extend(V0Limits)
-    Limits.extend(V0AdvLimits)
-    Limits.extend(LambdaLimits)
-    Limits.extend(hIPLimits)
-    Limits.extend(HpPLimits)
-    Limits.extend(HmPLimits)
+    print(variables)
+    Limits=[]
+    for var in variables:
+       tmp = data.sort_values(by=[var])
+       tmp = tmp.reset_index(drop=True)
+       if args.down == 1:
+           lms=[[tmp.loc[0, var],tmp.loc[63751, var],tmp.loc[127503, var],tmp.loc[191255, var]]]
+           rng = 40 #range
+       else:
+           lms=[[tmp.loc[0, var],tmp.loc[26852, var],tmp.loc[53706, var],tmp.loc[80558, var]]]
+           rng = 20
+       Limits.extend(lms)
 
     for i in range(len(variables)):
         temp = data.drop(data[data["{}".format(variables[i])] >= Limits[i][1]].index)
@@ -164,5 +151,4 @@ if __name__ == '__main__':
     parser.add_argument('--tree', help='Name of tree should it differ from tree', default='tree')
     parser.add_argument('--down', action='store_true', help='If flagged use downstream tracks')
     args = parser.parse_args()
-
     main(args)
