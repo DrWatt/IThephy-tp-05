@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import argparse
-#import sys
+import sys
 import matplotlib.pyplot as plt
 from root_pandas import read_root, to_root
 from matplotlib.backends.backend_pdf import PdfPages
@@ -55,20 +55,24 @@ def main(args):
 
     variables = ["nTracks"]
     V0Vars = ["V0_ENDVERTEX_Z", "V0_ENDVERTEX_X", "V0_ENDVERTEX_Y", "V0_ENDVERTEX_CHI2"]
+    Lambdavars = ["Lambda_E"]
     hIPVars = ["hplus_IP_OWNPV", "hminus_IP_OWNPV", "hplus_IPCHI2_OWNPV", "hminus_IPCHI2_OWNPV"]
     hplusP = ["hplus_PX", "hplus_PY", "hplus_PZ", "hplus_P"]
     hminusP = ["hminus_PX", "hminus_PY", "hminus_PZ", "hminus_P"]
     variables.extend(V0Vars)
+    variables.extend(Lambdavars)
     variables.extend(hIPVars)
     variables.extend(hplusP)
     variables.extend(hminusP)
 
     units = [""]
     V0Units = ["", "", "", ""]
+    LambdaUnits = ["MeV / c^2"]
     hIPUnits = ["", "", "", ""]
     hplusPUnits = ["MeV / c", "MeV / c", "MeV / c", "MeV / c"]
     hminusPUnits = ["MeV / c", "MeV / c", "MeV / c", "MeV / c"]
     units.extend(V0Units)
+    units.extend(LambdaUnits)
     units.extend(hIPUnits)
     units.extend(hplusPUnits)
     units.extend(hminusPUnits)
@@ -77,18 +81,21 @@ def main(args):
     if args.down == 1: #There are other Limits for different Track types
         #Down == 5
         V0Limits = [[-200, 800, 1800, 2800], [-500, -167, 167,500], [-500, -167, 167,500], [0, 5, 10, 15]]
+        LambdaLimits = [[0,67000,134000,200000]]
         hIPLimits = [[0,7,14,21], [0,33,67,100], [0,133,267,400], [0,320,640,960]]
         HpPLimits = [[-12000,-4000,4000,12000], [-12000,-4000,4000,12000], [0,58000,106000,175000], [0,58000,106000,175000]]
         HmPLimits = [[-2500,-800,800,2500], [-2500,-800,800,2500], [0,12000,24000,36000], [0,12000,24000,36000]]
         rng = 40 #range
     else:
         #Long == 3
-        V0Limits = [[-200, 100, 400, 700], [-35, -12, 12, 35], [-35, -12, 12, 35], [0 , 7, 14, 21]]
+        V0Limits = [[-200, 100, 400, 700], [-35, -12, 12, 35], [-35, -12, 12, 35], [0 , 2.3, 4.7, 7]]
+        LambdaLimits = [[0,67000,134000,200000]]
         hIPLimits = [[0,2,4,6], [0,8,16,24], [0,2000,4000,6000], [0,1000,2000,3000]]
         HpPLimits = [[-9000,-3000,3000,9000], [-8000,-2667,2667,8000], [0,60000,120000,180000], [0,60000,120000,180000]]
         HmPLimits = [[-1800,-600,600,1800], [-1800,-600,600,1800], [0,12000,24000,36000], [0,12000,24000,36000]]
         rng = 20
     Limits.extend(V0Limits)
+    Limits.extend(LambdaLimits)
     Limits.extend(hIPLimits)
     Limits.extend(HpPLimits)
     Limits.extend(HmPLimits)
