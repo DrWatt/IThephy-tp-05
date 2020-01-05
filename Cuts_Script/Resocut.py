@@ -48,6 +48,24 @@ def main(args):
     data["Lambda_PY"] = data.hplus_PY+data.hminus_PY
     data["Lambda_PZ"] = data.hplus_PZ+data.hminus_PZ
 
+    data["hplus_eta_TRUE"]=0.5*np.log(data.hplus_E_TRUE+data.hplus_TRUEP_Z/data.hplus_E_TRUE-data.hplus_TRUEP_Z)
+    data["hplus_eta"]=0.5*np.log(data.hplus_E+data.hplus_PZ/data.hplus_E-data.hplus_PZ)
+    data["hminus_eta_TRUE"]=0.5*np.log(data.hminus_E_TRUE+data.hminus_TRUEP_Z/data.hminus_E_TRUE-data.hminus_TRUEP_Z)
+    data["hminus_eta"]=0.5*np.log(data.hminus_E+data.hminus_PZ/data.hminus_E-data.hminus_PZ)
+    data["Lambda_eta_TRUE"]=0.5*np.log(data.Lambda_E_TRUE+data.Lambda_PZ_TRUE/data.Lambda_E_TRUE-data.Lambda_PZ_TRUE)
+    data["Lambda_eta"]=0.5*np.log(data.Lambda_E+data.Lambda_PZ/data.Lambda_E-data.Lambda_PZ)
+
+    data["hplus_PT_TRUE"]=np.sqrt(data.hplus_TRUEP_X**2+data.hplus_TRUEP_Y**2)
+    data["hplus_PT"]=np.sqrt(data.hplus_PX**2+data.hplus_PY**2)
+    data["hminus_PT_TRUE"]=np.sqrt(data.hminus_TRUEP_X**2+data.hminus_TRUEP_Y**2)
+    data["hminus_PT"]=np.sqrt(data.hminus_PX**2+data.hminus_PY**2)
+    data["Lambda_PT_TRUE"]=np.sqrt(data.Lambda_PX_TRUE**2+data.Lambda_PY_TRUE**2)
+    data["Lambda_PT"]=np.sqrt(data.Lambda_PX**2+data.Lambda_PY**2)
+
+    data["Angle_TRUE"]=np.arccos((data.hplus_TRUEP_X*data.hminus_TRUEP_X+data.hplus_TRUEP_Y*data.hminus_TRUEP_Y+data.hplus_TRUEP_Z*data.hminus_TRUEP_Z)/(data.hplus_P_TRUE*data.hminus_P_TRUE))
+    data["Angle"]=np.arccos((data.hplus_TRUEP_X*data.hminus_TRUEP_X+data.hplus_TRUEP_Y*data.hminus_TRUEP_Y+data.hplus_TRUEP_Z*data.hminus_TRUEP_Z)/(data.hplus_P_TRUE*data.hminus_P_TRUE))
+    
+
     data["Lambda_M_TRUE"] = np.sqrt(data.Lambda_E_TRUE**2-(data.Lambda_PX_TRUE**2+data.Lambda_PY_TRUE**2+data.Lambda_PZ_TRUE**2))
     data["Lambda_M"] = np.sqrt(data.Lambda_E**2-(data.Lambda_PX**2+data.Lambda_PY**2+data.Lambda_PZ**2))
 
@@ -60,12 +78,19 @@ def main(args):
     hIPVars = ["hplus_IP_OWNPV", "hminus_IP_OWNPV", "hplus_IPCHI2_OWNPV", "hminus_IPCHI2_OWNPV"]
     hplusP = ["hplus_PX", "hplus_PY", "hplus_PZ", "hplus_P"]
     hminusP = ["hminus_PX", "hminus_PY", "hminus_PZ", "hminus_P"]
+    pseudorap = ["hplus_eta_TRUE","hplus_eta","hminus_eta_TRUE","hminus_eta","Lambda_eta_TRUE","Lambda_eta"]
+    transverse = ["hplus_PT_TRUE","hplus_PT","hminus_PT_TRUE","hplus_PT","Lambda_PT_TRUE","Lambda_PT"]
+    angle = ["Angle_TRUE","Angle"]
+    
     variables.extend(V0Vars)
     variables.extend(V0Advanced)
     variables.extend(Lambdavars)
     variables.extend(hIPVars)
     variables.extend(hplusP)
     variables.extend(hminusP)
+    variables.extend(pseudorap)
+    variables.extend(transverse)
+    variables.extend(angle)
 
     units = [""]
     V0Units = ["", "", "", ""]
@@ -74,14 +99,20 @@ def main(args):
     hIPUnits = ["", "", "", ""]
     hplusPUnits = ["MeV / c", "MeV / c", "MeV / c", "MeV / c"]
     hminusPUnits = ["MeV / c", "MeV / c", "MeV / c", "MeV / c"]
+    pseudorapUnits = ["", "", "", "", "", "", ""]
+    transverseUnits = ["MeV / c", "MeV / c", "MeV / c", "MeV / c","MeV / c","MeV / c"]
+    angleUnits = ["rad","rad"]
+    
     units.extend(V0Units)
     units.extend(V0AdvUnits)
     units.extend(LambdaUnits)
     units.extend(hIPUnits)
     units.extend(hplusPUnits)
     units.extend(hminusPUnits)
+    units.extend(pseudorapUnits)
+    units.extend(transverseUnits)
+    units.extend(angleUnits)
 
-    print(variables)
     Limits=[]
     for var in variables:
        tmp = data.sort_values(by=[var])
@@ -93,6 +124,34 @@ def main(args):
            lms=[[tmp.loc[0, var],tmp.loc[26852, var],tmp.loc[53706, var],tmp.loc[80558, var]]]
            rng = 20
        Limits.extend(lms)
+
+
+    """Limits = [[0, 167, 333, 500]]#nTracks
+    if args.down == 1: #There are other Limits for different Track types
+        #Down == 5
+        V0Limits = [[-200, 800, 1800, 2800], [-500, -167, 167,500], [-500, -167, 167,500], [0, 5, 10, 15]]
+        V0AdvLimits = [[1101,1111,1121,1131], [0,900,1800,2700], [-3000,8000,19000,30000]]
+        LambdaLimits = [[0,67000,134000,200000]]
+        hIPLimits = [[0,7,14,21], [0,33,67,100], [0,133,267,400], [0,320,640,960]]
+        HpPLimits = [[-12000,-4000,4000,12000], [-12000,-4000,4000,12000], [0,58000,106000,175000], [0,58000,106000,175000]]
+        HmPLimits = [[-2500,-800,800,2500], [-2500,-800,800,2500], [0,12000,24000,36000], [0,12000,24000,36000]]
+        rng = 40 #range
+    else:
+        #Long == 3
+        V0Limits = [[-200, 100, 400, 700], [-35, -12, 12, 35], [-35, -12, 12, 35], [0 , 2.3, 4.7, 7]]
+        V0AdvLimits = [[1104,1112,1120,1128], [0,233,467,700], [-3000,8000,19000,30000]]
+        LambdaLimits = [[0,67000,134000,200000]]
+        hIPLimits = [[0,2,4,6], [0,8,16,24], [0,2000,4000,6000], [0,1000,2000,3000]]
+        HpPLimits = [[-9000,-3000,3000,9000], [-8000,-2667,2667,8000], [0,60000,120000,180000], [0,60000,120000,180000]]
+        HmPLimits = [[-1800,-600,600,1800], [-1800,-600,600,1800], [0,12000,24000,36000], [0,12000,24000,36000]]
+        rng = 20
+    Limits.extend(V0Limits)
+    Limits.extend(V0AdvLimits)
+    Limits.extend(LambdaLimits)
+    Limits.extend(hIPLimits)
+    Limits.extend(HpPLimits)
+    Limits.extend(HmPLimits)"""
+
 
     for i in range(len(variables)):
         temp = data.drop(data[data["{}".format(variables[i])] >= Limits[i][1]].index)
