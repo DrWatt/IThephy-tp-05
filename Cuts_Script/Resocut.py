@@ -206,7 +206,8 @@ def main(args):
         popt6, pcov6 = curve_fit(fit_function, xdata=binscenters, ydata=n6)
         plt.plot(xspace, fit_function(xspace, *popt6), color='navy', linewidth=0.5)
 
-        x=np.array([0.5 * (Limits[i][j] + Limits[i][j+1]) for j in range(0,6)])
+        zone=[temp["{}".format(variables[i])],temp2["{}".format(variables[i])],temp3["{}".format(variables[i])],temp4["{}".format(variables[i])],temp5["{}".format(variables[i])],temp6["{}".format(variables[i])]]
+        x=np.array([zone[j].mean() for j in range(0,6)])
         resolution=[popt1[1], popt2[1], popt3[1],popt4[1],popt5[1],popt6[1]]
 
         plt.xlabel("Resolution")
