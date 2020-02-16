@@ -69,7 +69,7 @@ def main(args):
 
     data["Angle_TRUE"]=np.arccos((data.hplus_TRUEP_X*data.hminus_TRUEP_X+data.hplus_TRUEP_Y*data.hminus_TRUEP_Y+data.hplus_TRUEP_Z*data.hminus_TRUEP_Z)/(data.hplus_P_TRUE*data.hminus_P_TRUE))
     data["Angle"]=np.arccos((data.hplus_TRUEP_X*data.hminus_TRUEP_X+data.hplus_TRUEP_Y*data.hminus_TRUEP_Y+data.hplus_TRUEP_Z*data.hminus_TRUEP_Z)/(data.hplus_P_TRUE*data.hminus_P_TRUE))
-    
+
 
     data["Lambda_M_TRUE"] = np.sqrt(data.Lambda_E_TRUE**2-(data.Lambda_PX_TRUE**2+data.Lambda_PY_TRUE**2+data.Lambda_PZ_TRUE**2))
     data["Lambda_M"] = np.sqrt(data.Lambda_E**2-(data.Lambda_PX**2+data.Lambda_PY**2+data.Lambda_PZ**2))
@@ -86,7 +86,7 @@ def main(args):
     pseudorap = ["hplus_eta_TRUE","hplus_eta","hminus_eta_TRUE","hminus_eta","Lambda_eta_TRUE","Lambda_eta"]
     transverse = ["hplus_PT_TRUE","hplus_PT","hminus_PT_TRUE","hminus_PT","Lambda_PT_TRUE","Lambda_PT"]
     angle = ["Angle_TRUE","Angle"]
-    
+
     variables.extend(V0Vars)
     variables.extend(V0Advanced)
     variables.extend(Lambdavars)
@@ -107,7 +107,7 @@ def main(args):
     pseudorapUnits = ["", "", "", "", "", "", ""]
     transverseUnits = ["MeV / c", "MeV / c", "MeV / c", "MeV / c","MeV / c","MeV / c"]
     angleUnits = ["rad","rad"]
-    
+
     units.extend(V0Units)
     units.extend(V0AdvUnits)
     units.extend(LambdaUnits)
@@ -166,7 +166,7 @@ def main(args):
         temp5 = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][5]) | (data["{}".format(variables[i])] < Limits[i][4])].index)
         temp6 = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][6]) | (data["{}".format(variables[i])] < Limits[i][5])].index)
 
-        
+
         plt.hist(temp["{}".format(variables[i])], bins=50, range=(Limits[i][0], Limits[i][6]), color = 'orange', label='low {}'.format(variables[i]))
         plt.hist(temp2["{}".format(variables[i])], bins=50, range=(Limits[i][0], Limits[i][6]), color = 'green', label='low intermediate {}'.format(variables[i]))
         plt.hist(temp3["{}".format(variables[i])], bins=50, range=(Limits[i][0], Limits[i][6]), color = 'red', label='intermediate {}'.format(variables[i]))
@@ -192,7 +192,7 @@ def main(args):
 
         binscenters = np.array([0.5 * (bins1[j] + bins1[j]) for j in range(len(bins1)-1)])
         xspace = np.linspace(-rng, rng, 100000)
-        
+
         popt1, pcov1 = curve_fit(fit_function, xdata=binscenters, ydata=n1)
         plt.plot(xspace, fit_function(xspace, *popt1), color='orange', linewidth=0.5)
         popt2, pcov2 = curve_fit(fit_function, xdata=binscenters, ydata=n2)
@@ -208,7 +208,7 @@ def main(args):
 
         x=np.array([0.5 * (Limits[i][j] + Limits[i][j+1]) for j in range(0,6)])
         resolution=[popt1[1], popt2[1], popt3[1],popt4[1],popt5[1],popt6[1]]
-        
+
         plt.xlabel("Resolution")
         plt.ylabel("Normalized arbitrary units")
         plt.title("Resolution of used Intervalls of {}".format(variables[i]))
@@ -217,15 +217,21 @@ def main(args):
         pp.savefig()
         plt.clf()
 
-        
-        plt.plot(x,resolution,'bo')
-        plt.ylabel("Normalized arbitrary units")
+        plt.scatter(x,resolution, color=['orange', 'green', 'red', 'steelblue', 'darkviolet', 'navy'], marker = 'o')
+        #plt.plot(x[0], resolution[0], color='orange')
+        #plt.plot(x[1], resolution[1], color='green')
+        #plt.plot(x[2], resolution[2], color='red')
+        if units[i]:
+            plt.xlabel("Mean of intervall of {} / {}".format(variables[i], units[i]))
+        else:
+            plt.xlabel("Mean of intervall of {}".format(variables[i]))
+        plt.ylabel("Mean of Resolution in normalized arbitrary units")
         plt.title("Quantified Resolution of used Intervalls of {}".format(variables[i]))
         plt.grid()
         pp.savefig()
         plt.clf()
 
-        
+
         #np.savetxt(file, [temp["Resolution"].mean()])
         print('-----------------------')
         print("low {} mean:".format(variables[i]), temp["Resolution"].mean())
