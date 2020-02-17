@@ -12,6 +12,107 @@
 #include <TGraphErrors.h>
 #include <TH2F.h>
 #include <fstream>
+#include <TObjArray.h>
+#include <TObject.h>
+
+void tree::tocsv()
+{
+	float pionmsq = 139.57061*139.57061;
+	float protonmsq = 938.272081*938.272081;
+	float lambdam = 1115.683;
+
+	vector<float> hplus_P;
+	vector<float> hplus_E;
+	vector<float> hminus_P;
+	vector<float> hminus_E;
+	vector<float> Lambda_E;
+	vector<float> hplus_P_TRUE;
+	vector<float> hminus_P_TRUE;
+	vector<float> hplus_E_TRUE;
+	vector<float> hminus_E_TRUE;
+	vector<float> Lambda_E_TRUE;
+	vector<float> Lambda_PX_TRUE;
+	vector<float> Lambda_PY_TRUE;
+	vector<float> Lambda_PZ_TRUE;
+	vector<float> Lambda_PX;
+	vector<float> Lambda_PY;
+	vector<float> Lambda_PZ;
+	vector<float> Lambda_M;
+	vector<float> Lambda_M_TRUE;
+	vector<float> Angle;
+	vector<float> Resolution;
+	ofstream o;
+	o.open("datatree2.csv");
+	//o << "V0_Endvertex_Z,V0_Endvertex_Y,V0_FDCHI2_ORIVX,V0_M,V0_FD_ORIVX,Lambda_E,hplus_IP_OWNPV,hplus_IPCHI2_OWNPV,hplus_P,hminus_P,Angle,Resolution,Track_type\n";
+	if (fChain == 0) return;
+
+	Long64_t nentries = fChain->GetEntriesFast();
+
+	Long64_t nbytes = 0, nb = 0;
+
+	TObjArray* a = fChain->GetListOfLeaves();
+	for (int i = 0; i < a->GetEntries(); ++i)
+	{
+		clog <<a->At(i)->GetName()<< endl;
+		o << a->At(i)->GetName() << ',';
+	}
+	o << "Lambda_E,hplus_P,hminus_P,Angle,Resolution\n";
+
+
+
+   	for (Long64_t jentry=0; jentry<nentries;jentry++) {
+   		Long64_t ientry = LoadTree(jentry);
+   		if (ientry < 0) break;
+   		nb = fChain->GetEntry(jentry);   nbytes += nb;
+   		// if (Cut(ientry) < 0) continue;
+
+      float t = jentry/1000.;
+      if (t == (int)t) clog <<'\r' << "Entry " << jentry;
+
+
+      hplus_P.push_back(sqrt(hplus_PX*hplus_PX+hplus_PY*hplus_PY+hplus_PZ*hplus_PZ));
+	  hplus_E.push_back(sqrt(hplus_P.at(jentry)*hplus_P.at(jentry)+protonmsq));
+	  hminus_P.push_back(sqrt(hminus_PX*hminus_PX+hminus_PY*hminus_PY+hminus_PZ*hminus_PZ));
+	  hminus_E.push_back(sqrt(hminus_P.at(jentry)*hminus_P.at(jentry)+pionmsq));
+
+	  hplus_P_TRUE.push_back(sqrt(hplus_TRUEP_X*hplus_TRUEP_X+hplus_TRUEP_Y*hplus_TRUEP_Y+hplus_TRUEP_Z*hplus_TRUEP_Z));
+	  hminus_P_TRUE.push_back(sqrt(hminus_TRUEP_X*hminus_TRUEP_X+hminus_TRUEP_Y*hminus_TRUEP_Y+hminus_TRUEP_Z*hminus_TRUEP_Z));
+	  hplus_E_TRUE.push_back(sqrt(hplus_P_TRUE.at(jentry)*hplus_P_TRUE.at(jentry)+protonmsq));
+	  hminus_E_TRUE.push_back(sqrt(hminus_P_TRUE.at(jentry)*hminus_P_TRUE.at(jentry)+pionmsq));
+
+	  Lambda_PX.push_back(hplus_PX+hminus_PX);
+	  Lambda_PY.push_back(hplus_PY+hminus_PY);
+	  Lambda_PZ.push_back(hplus_PZ+hminus_PZ);
+
+	  Lambda_PX_TRUE.push_back(hplus_TRUEP_X+hminus_TRUEP_X);
+	  Lambda_PY_TRUE.push_back(hplus_TRUEP_Y+hminus_TRUEP_Y);
+	  Lambda_PZ_TRUE.push_back(hplus_TRUEP_Z+hminus_TRUEP_Z);
+
+	  Lambda_E.push_back(hplus_E.at(jentry)+hminus_E.at(jentry));
+	  Lambda_E_TRUE.push_back(hplus_E_TRUE.at(jentry)+hminus_E_TRUE.at(jentry));
+
+	  Angle.push_back(acos((hplus_TRUEP_X*hminus_TRUEP_X+hplus_TRUEP_Y*hminus_TRUEP_Y+hplus_TRUEP_Z*hminus_TRUEP_Z)/(hplus_P_TRUE.at(jentry)*hminus_P_TRUE.at(jentry))));
+
+	  Lambda_M.push_back(sqrt(Lambda_E.at(jentry)*Lambda_E.at(jentry)-(Lambda_PX.at(jentry)*Lambda_PX.at(jentry)+Lambda_PY.at(jentry)*Lambda_PY.at(jentry)+Lambda_PZ.at(jentry)*Lambda_PZ.at(jentry))));
+	  Lambda_M_TRUE.push_back(sqrt(Lambda_E_TRUE.at(jentry)*Lambda_E_TRUE.at(jentry)-(Lambda_PX_TRUE.at(jentry)*Lambda_PX_TRUE.at(jentry)+Lambda_PY_TRUE.at(jentry)*Lambda_PY_TRUE.at(jentry)+Lambda_PZ_TRUE.at(jentry)*Lambda_PZ_TRUE.at(jentry))));
+
+	  Resolution.push_back(Lambda_M_TRUE.at(jentry)-Lambda_M.at(jentry));
+
+	
+	for (int i = 0; i < a->GetEntries(); ++i)
+	{
+		o << fChain->GetLeaf(a->At(i)->GetName())->GetValue() << ',';
+	}
+	  o << Lambda_E.at(jentry) << ',';
+	  o << hplus_P.at(jentry) << ',';
+	  o << hminus_P.at(jentry) << ',';
+	  o << Angle.at(jentry) << ',';
+	  o << Resolution.at(jentry) << ',';
+	  o << '\n';
+	}
+	o.close();
+}
+
 
 #define PIONMASS 139.5706 //MeV
 #define PROTMASS 938.27803 //MeV
@@ -291,7 +392,7 @@ TCanvas* c = new TCanvas("c","c");
     c7->Draw();
 
     std::chrono::duration<double> elapsed_seconds = chrono::system_clock::now() - time0;
-    clog << "Macro executed in " << elapsed_seconds.count() << " seconds\n";*/
+    clog << "Macro executed in " << elapsed_seconds.count() << " seconds\n";
 }
 
 
@@ -905,96 +1006,3 @@ for (int i = 0; i < PionVect4d.size(); ++i)
 
 */
 }
-
-
-
-void tree::tocsv()
-{
-	float pionmsq = 139.57061*139.57061;
-	float protonmsq = 938.272081*938.272081;
-	float lambdam = 1115.683;
-
-	vector<float> hplus_P;
-	vector<float> hplus_E;
-	vector<float> hminus_P;
-	vector<float> hminus_E;
-	vector<float> Lambda_E;
-	vector<float> hplus_P_TRUE;
-	vector<float> hminus_P_TRUE;
-	vector<float> hplus_E_TRUE;
-	vector<float> hminus_E_TRUE;
-	vector<float> Lambda_E_TRUE;
-	vector<float> Lambda_PX_TRUE;
-	vector<float> Lambda_PY_TRUE;
-	vector<float> Lambda_PZ_TRUE;
-	vector<float> Lambda_PX;
-	vector<float> Lambda_PY;
-	vector<float> Lambda_PZ;
-	vector<float> Lambda_M;
-	vector<float> Lambda_M_TRUE;
-	vector<float> Angle;
-	vector<float> Resolution;
-	ofstream o;
-	o.open("datatree2.csv");
-	o << "V0_Endvertex_Z,V0_Endvertex_Y,V0_FDCHI2_ORIVX,V0_M,V0_FD_ORIVX,Lambda_E,hplus_IP_OWNPV,hplus_IPCHI2_OWNPV,hplus_P,hminus_P,Angle,Resolution,Track_type\n";
-	if (fChain == 0) return;
-
-	Long64_t nentries = fChain->GetEntriesFast();
-
-	Long64_t nbytes = 0, nb = 0;
-
-   	for (Long64_t jentry=0; jentry<nentries;jentry++) {
-   		Long64_t ientry = LoadTree(jentry);
-   		if (ientry < 0) break;
-   		nb = fChain->GetEntry(jentry);   nbytes += nb;
-   		// if (Cut(ientry) < 0) continue;
-      float t = jentry/1000.;
-      if (t == (int)t) clog <<'\r' << "Entry " << jentry;
-
-
-      hplus_P.push_back(sqrt(hplus_PX*hplus_PX+hplus_PY*hplus_PY+hplus_PZ*hplus_PZ));
-	  hplus_E.push_back(sqrt(hplus_P.at(jentry)*hplus_P.at(jentry)+protonmsq));
-	  hminus_P.push_back(sqrt(hminus_PX*hminus_PX+hminus_PY*hminus_PY+hminus_PZ*hminus_PZ));
-	  hminus_E.push_back(sqrt(hminus_P.at(jentry)*hminus_P.at(jentry)+pionmsq));
-
-	  hplus_P_TRUE.push_back(sqrt(hplus_TRUEP_X*hplus_TRUEP_X+hplus_TRUEP_Y*hplus_TRUEP_Y+hplus_TRUEP_Z*hplus_TRUEP_Z));
-	  hminus_P_TRUE.push_back(sqrt(hminus_TRUEP_X*hminus_TRUEP_X+hminus_TRUEP_Y*hminus_TRUEP_Y+hminus_TRUEP_Z*hminus_TRUEP_Z));
-	  hplus_E_TRUE.push_back(sqrt(hplus_P_TRUE.at(jentry)*hplus_P_TRUE.at(jentry)+protonmsq));
-	  hminus_E_TRUE.push_back(sqrt(hminus_P_TRUE.at(jentry)*hminus_P_TRUE.at(jentry)+pionmsq));
-
-	  Lambda_PX.push_back(hplus_PX+hminus_PX);
-	  Lambda_PY.push_back(hplus_PY+hminus_PY);
-	  Lambda_PZ.push_back(hplus_PZ+hminus_PZ);
-
-	  Lambda_PX_TRUE.push_back(hplus_TRUEP_X+hminus_TRUEP_X);
-	  Lambda_PY_TRUE.push_back(hplus_TRUEP_Y+hminus_TRUEP_Y);
-	  Lambda_PZ_TRUE.push_back(hplus_TRUEP_Z+hminus_TRUEP_Z);
-
-	  Lambda_E.push_back(hplus_E.at(jentry)+hminus_E.at(jentry));
-	  Lambda_E_TRUE.push_back(hplus_E_TRUE.at(jentry)+hminus_E_TRUE.at(jentry));
-
-	  Angle.push_back(acos((hplus_TRUEP_X*hminus_TRUEP_X+hplus_TRUEP_Y*hminus_TRUEP_Y+hplus_TRUEP_Z*hminus_TRUEP_Z)/(hplus_P_TRUE.at(jentry)*hminus_P_TRUE.at(jentry))));
-
-	  Lambda_M.push_back(sqrt(Lambda_E.at(jentry)*Lambda_E.at(jentry)-(Lambda_PX.at(jentry)*Lambda_PX.at(jentry)+Lambda_PY.at(jentry)*Lambda_PY.at(jentry)+Lambda_PZ.at(jentry)*Lambda_PZ.at(jentry))));
-	  Lambda_M_TRUE.push_back(sqrt(Lambda_E_TRUE.at(jentry)*Lambda_E_TRUE.at(jentry)-(Lambda_PX_TRUE.at(jentry)*Lambda_PX_TRUE.at(jentry)+Lambda_PY_TRUE.at(jentry)*Lambda_PY_TRUE.at(jentry)+Lambda_PZ_TRUE.at(jentry)*Lambda_PZ_TRUE.at(jentry))));
-
-	  Resolution.push_back(Lambda_M_TRUE.at(jentry)-Lambda_M.at(jentry));
-
-	  o << V0_ENDVERTEX_Z << ',';
-	  o << V0_ENDVERTEX_Y << ',';
-	  o << V0_FDCHI2_ORIVX << ',';
-	  o << V0_M << ',';
-	  o << V0_FD_ORIVX << ',';
-	  o << Lambda_E.at(jentry) << ',';
-	  o << hplus_IP_OWNPV << ',';
-	  o << hplus_IPCHI2_OWNPV << ',';
-	  o << hplus_P.at(jentry) << ',';
-	  o << hminus_P.at(jentry) << ',';
-	  o << Angle.at(jentry) << ',';
-	  o << Resolution.at(jentry) << ',';
-	  o  << hplus_TRACK_Type << ',';
-	  o << '\n';
-	}
-	o.close();
-}
-
