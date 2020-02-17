@@ -2,11 +2,16 @@ import numpy as np
 import pandas as pd
 import argparse
 import sys
+import math
 import matplotlib.pyplot as plt
 from root_pandas import read_root, to_root
 from matplotlib.backends.backend_pdf import PdfPages
+from scipy.optimize import curve_fit
 
 #import root_pandas
+
+def fit_function(x, mu, sigma):
+    return ((1/(math.sqrt(2*math.pi)*sigma)) * np.exp(-1.0 * (x - mu)**2 / (2 * sigma**2)))
 
 def main(args):
     #filename = args.save.replace('.pdf', '') + '_Data.json'
@@ -64,7 +69,7 @@ def main(args):
 
     data["Angle_TRUE"]=np.arccos((data.hplus_TRUEP_X*data.hminus_TRUEP_X+data.hplus_TRUEP_Y*data.hminus_TRUEP_Y+data.hplus_TRUEP_Z*data.hminus_TRUEP_Z)/(data.hplus_P_TRUE*data.hminus_P_TRUE))
     data["Angle"]=np.arccos((data.hplus_TRUEP_X*data.hminus_TRUEP_X+data.hplus_TRUEP_Y*data.hminus_TRUEP_Y+data.hplus_TRUEP_Z*data.hminus_TRUEP_Z)/(data.hplus_P_TRUE*data.hminus_P_TRUE))
-    
+
 
     data["Lambda_M_TRUE"] = np.sqrt(data.Lambda_E_TRUE**2-(data.Lambda_PX_TRUE**2+data.Lambda_PY_TRUE**2+data.Lambda_PZ_TRUE**2))
     data["Lambda_M"] = np.sqrt(data.Lambda_E**2-(data.Lambda_PX**2+data.Lambda_PY**2+data.Lambda_PZ**2))
@@ -79,9 +84,9 @@ def main(args):
     hplusP = ["hplus_PX", "hplus_PY", "hplus_PZ", "hplus_P"]
     hminusP = ["hminus_PX", "hminus_PY", "hminus_PZ", "hminus_P"]
     pseudorap = ["hplus_eta_TRUE","hplus_eta","hminus_eta_TRUE","hminus_eta","Lambda_eta_TRUE","Lambda_eta"]
-    transverse = ["hplus_PT_TRUE","hplus_PT","hminus_PT_TRUE","hplus_PT","Lambda_PT_TRUE","Lambda_PT"]
+    transverse = ["hplus_PT_TRUE","hplus_PT","hminus_PT_TRUE","hminus_PT","Lambda_PT_TRUE","Lambda_PT"]
     angle = ["Angle_TRUE","Angle"]
-    
+
     variables.extend(V0Vars)
     variables.extend(V0Advanced)
     variables.extend(Lambdavars)
@@ -102,7 +107,7 @@ def main(args):
     pseudorapUnits = ["", "", "", "", "", "", ""]
     transverseUnits = ["MeV / c", "MeV / c", "MeV / c", "MeV / c","MeV / c","MeV / c"]
     angleUnits = ["rad","rad"]
-    
+
     units.extend(V0Units)
     units.extend(V0AdvUnits)
     units.extend(LambdaUnits)
@@ -118,10 +123,10 @@ def main(args):
        tmp = data.sort_values(by=[var])
        tmp = tmp.reset_index(drop=True)
        if args.down == 1:
-           lms=[[tmp.loc[0, var],tmp.loc[63751, var],tmp.loc[127503, var],tmp.loc[191255, var]]]
+           lms=[[tmp.loc[0, var],tmp.loc[31875 ,var],tmp.loc[63751, var],tmp.loc[95627, var],tmp.loc[127503, var],tmp.loc[159379, var],tmp.loc[191255, var]]]
            rng = 40 #range
        else:
-           lms=[[tmp.loc[0, var],tmp.loc[26852, var],tmp.loc[53706, var],tmp.loc[80558, var]]]
+           lms=[[tmp.loc[0, var],tmp.loc[13426, var],tmp.loc[26852, var],tmp.loc[40279, var],tmp.loc[53706, var],tmp.loc[67132, var],tmp.loc[80558, var]]]
            rng = 20
        Limits.extend(lms)
 
@@ -157,10 +162,17 @@ def main(args):
         temp = data.drop(data[data["{}".format(variables[i])] >= Limits[i][1]].index)
         temp2 = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][2]) | (data["{}".format(variables[i])] < Limits[i][1])].index)
         temp3 = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][3]) | (data["{}".format(variables[i])] < Limits[i][2])].index)
+        temp4 = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][4]) | (data["{}".format(variables[i])] < Limits[i][3])].index)
+        temp5 = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][5]) | (data["{}".format(variables[i])] < Limits[i][4])].index)
+        temp6 = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][6]) | (data["{}".format(variables[i])] < Limits[i][5])].index)
 
-        plt.hist(temp["{}".format(variables[i])], bins=83, range=(Limits[i][0], Limits[i][3]), color = 'orange', label='low {}'.format(variables[i]))
-        plt.hist(temp2["{}".format(variables[i])], bins=83, range=(Limits[i][0], Limits[i][3]), color = 'green', label='intermediate {}'.format(variables[i]))
-        plt.hist(temp3["{}".format(variables[i])], bins=83, range=(Limits[i][0], Limits[i][3]), color = 'steelblue', label='high {}'.format(variables[i]))
+
+        plt.hist(temp["{}".format(variables[i])], bins=50, range=(Limits[i][0], Limits[i][6]), color = 'orange', label='low {}'.format(variables[i]))
+        plt.hist(temp2["{}".format(variables[i])], bins=50, range=(Limits[i][0], Limits[i][6]), color = 'green', label='low intermediate {}'.format(variables[i]))
+        plt.hist(temp3["{}".format(variables[i])], bins=50, range=(Limits[i][0], Limits[i][6]), color = 'red', label='intermediate {}'.format(variables[i]))
+        plt.hist(temp4["{}".format(variables[i])], bins=50, range=(Limits[i][0], Limits[i][6]), color = 'steelblue', label='high intermediate {}'.format(variables[i]))
+        plt.hist(temp5["{}".format(variables[i])], bins=50, range=(Limits[i][0], Limits[i][6]), color = 'darkviolet', label='high {}'.format(variables[i]))
+        plt.hist(temp5["{}".format(variables[i])], bins=50, range=(Limits[i][0], Limits[i][6]), color = 'navy', label='very high {}'.format(variables[i]))
         plt.title("Used Intervalls of {}".format(variables[i]))
         if units[i]:
             plt.xlabel("{} / {}".format(variables[i], units[i]))
@@ -171,13 +183,32 @@ def main(args):
         pp.savefig()
         plt.clf()
 
-        plt.hist(temp["Resolution"], bins=100, range=(-rng,rng), color = 'orange', density=True, histtype='step', label='low'.format(variables[i]))
-        #pp.savefig()
-        #plt.clf()
-        plt.hist(temp2["Resolution"], bins=100, range=(-rng,rng), color = 'green', density=True, histtype='step', label='intermediate'.format(variables[i]))
-        #pp.savefig()
-        #plt.clf()
-        plt.hist(temp3["Resolution"], bins=100, range=(-rng,rng), color = 'steelblue', density=True, histtype='step', label='high'.format(variables[i]))
+        (n1,bins1,patches1)=plt.hist(temp["Resolution"], bins=100, range=(-rng,rng), color='orange', density=True, histtype='step', label='low'.format(variables[i]))
+        (n2,bins2,patches2)=plt.hist(temp2["Resolution"], bins=100, range=(-rng,rng), color='green', density=True, histtype='step', label='low intermediate'.format(variables[i]))
+        (n3,bins3,patches3)=plt.hist(temp3["Resolution"], bins=100, range=(-rng,rng), color='red', density=True, histtype='step', label='intermediate'.format(variables[i]))
+        (n4,bins4,patches4)=plt.hist(temp4["Resolution"], bins=100, range=(-rng,rng), color='steelblue', density=True, histtype='step', label='high intermediate'.format(variables[i]))
+        (n5,bins5,patches5)=plt.hist(temp5["Resolution"], bins=100, range=(-rng,rng), color='darkviolet', density=True, histtype='step', label='high'.format(variables[i]))
+        (n6,bins6,patches6)=plt.hist(temp6["Resolution"], bins=100, range=(-rng,rng), color='navy', density=True, histtype='step', label='very high'.format(variables[i]))
+
+        binscenters = np.array([0.5 * (bins1[j] + bins1[j]) for j in range(len(bins1)-1)])
+        xspace = np.linspace(-rng, rng, 100000)
+
+        popt1, pcov1 = curve_fit(fit_function, xdata=binscenters, ydata=n1)
+        plt.plot(xspace, fit_function(xspace, *popt1), color='orange', linewidth=0.5)
+        popt2, pcov2 = curve_fit(fit_function, xdata=binscenters, ydata=n2)
+        plt.plot(xspace, fit_function(xspace, *popt2), color='green', linewidth=0.5)
+        popt3, pcov3 = curve_fit(fit_function, xdata=binscenters, ydata=n3)
+        plt.plot(xspace, fit_function(xspace, *popt3), color='red', linewidth=0.5)
+        popt4, pcov4 = curve_fit(fit_function, xdata=binscenters, ydata=n4)
+        plt.plot(xspace, fit_function(xspace, *popt4), color='steelblue', linewidth=0.5)
+        popt5, pcov5 = curve_fit(fit_function, xdata=binscenters, ydata=n5)
+        plt.plot(xspace, fit_function(xspace, *popt5), color='darkviolet', linewidth=0.5)
+        popt6, pcov6 = curve_fit(fit_function, xdata=binscenters, ydata=n6)
+        plt.plot(xspace, fit_function(xspace, *popt6), color='navy', linewidth=0.5)
+
+        zone=[temp["{}".format(variables[i])],temp2["{}".format(variables[i])],temp3["{}".format(variables[i])],temp4["{}".format(variables[i])],temp5["{}".format(variables[i])],temp6["{}".format(variables[i])]]
+        x=np.array([zone[j].mean() for j in range(0,6)])
+        resolution=[popt1[1], popt2[1], popt3[1],popt4[1],popt5[1],popt6[1]]
 
         plt.xlabel("Resolution")
         plt.ylabel("Normalized arbitrary units")
@@ -186,14 +217,36 @@ def main(args):
         plt.grid()
         pp.savefig()
         plt.clf()
+
+        plt.scatter(x,resolution, color=['orange', 'green', 'red', 'steelblue', 'darkviolet', 'navy'], marker = 'o')
+        #plt.plot(x[0], resolution[0], color='orange')
+        #plt.plot(x[1], resolution[1], color='green')
+        #plt.plot(x[2], resolution[2], color='red')
+        if units[i]:
+            plt.xlabel("Mean of intervall of {} / {}".format(variables[i], units[i]))
+        else:
+            plt.xlabel("Mean of intervall of {}".format(variables[i]))
+        plt.ylabel("Mean of Resolution in normalized arbitrary units")
+        plt.title("Quantified Resolution of used Intervalls of {}".format(variables[i]))
+        plt.grid()
+        pp.savefig()
+        plt.clf()
+
+
         #np.savetxt(file, [temp["Resolution"].mean()])
         print('-----------------------')
         print("low {} mean:".format(variables[i]), temp["Resolution"].mean())
         print("low {} std:".format(variables[i]), temp["Resolution"].std())
-        print("intermediate {} mean:".format(variables[i]), temp2["Resolution"].mean())
-        print("intermediate {} std:".format(variables[i]), temp2["Resolution"].std())
-        print("high {} mean:".format(variables[i]), temp3["Resolution"].mean())
-        print("high {} std:".format(variables[i]), temp3["Resolution"].std())
+        print("low intermediate {} mean:".format(variables[i]), temp2["Resolution"].mean())
+        print("low intermediate {} std:".format(variables[i]), temp2["Resolution"].std())
+        print("intermediate {} mean:".format(variables[i]), temp3["Resolution"].mean())
+        print("intermediate {} std:".format(variables[i]), temp3["Resolution"].std())
+        print("high intermediate {} mean:".format(variables[i]), temp4["Resolution"].mean())
+        print("high intermediate {} std:".format(variables[i]), temp4["Resolution"].std())
+        print("high {} mean:".format(variables[i]), temp5["Resolution"].mean())
+        print("high {} std:".format(variables[i]), temp5["Resolution"].std())
+        print("very high {} mean:".format(variables[i]), temp6["Resolution"].mean())
+        print("very high {} std:".format(variables[i]), temp6["Resolution"].std())
 
 
 
