@@ -10,8 +10,16 @@ from scipy.optimize import curve_fit
 
 #import root_pandas
 
-def fit_function(x, mu, sigma):
+def Normal(x, mu, sigma):
     return ((1/(math.sqrt(2*math.pi)*sigma)) * np.exp(-1.0 * (x - mu)**2 / (2 * sigma**2)))
+def Linear(x, a, b):
+    return a*x+b
+def Quadratic(x, a, b, c):
+    return a*(x**2)+b*x+c
+def Logaritmic(x, a, b, c):
+    return a*np.log(b*x)+c
+def Exponential(x, a, b, c):
+    return a*np.exp(-b*x)+c
 
 def main(args):
     #filename = args.save.replace('.pdf', '') + '_Data.json'
@@ -23,9 +31,17 @@ def main(args):
 
     if args.down == 1:
         data = data.drop(data[data['hplus_TRACK_Type'] == 3 ].index)
-        #Dropping all tracks with Type 3 (long)
+        linear=["V0_ENDVERTEX_Z","V0_ENDVERTEX_CHI2","V0_FD_ORIVX","hplus_IP_OWNPV", "hminus_PZ", "hminus_P","hminus_PT_TRUE","hminus_PT","Angle_TRUE","Angle"]
+        quadratic=["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y","V0_M","hminus_IP_OWNPV","hplus_IPCHI2_OWNPV", "hminus_IPCHI2_OWNPV","hplus_PX","hminus_PX", "hminus_PY","hplus_eta_TRUE","hplus_eta","Lambda_eta_TRUE","Lambda_eta"]
+        exponential=["V0_FDCHI2_ORIVX"]
+        logaritmic=["hplus_PT_TRUE","hplus_PT","Angle_TRUE","Angle","hplus_PZ", "hplus_P","hplus_PZ", "hplus_P","Lambda_E"]
+        
     else:
         data = data.drop(data[data['hplus_TRACK_Type'] == 5 ].index)
+        linear=['nTracks',"Lambda_E","hminus_IP_OWNPV","hminus_IPCHI2_OWNPV","hminus_PZ", "hminus_P","hminus_eta_TRUE","hminus_eta","hplus_PT_TRUE","hplus_PT"]
+        quadratic=["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y","V0_M","hminus_PX",'hplus_PY',"Angle_TRUE","Angle","hplus_eta_TRUE","hplus_eta"]
+        exponential=["hplus_IP_OWNPV","hplus_eta_TRUE","hplus_eta","hminus_eta_TRUE","hminus_eta","Lambda_eta_TRUE","Lambda_eta"]
+        logaritmic=["hplus_PZ", "hplus_P"]
 
     #Declaring real masses from pdg
     pionm = 139.57061
@@ -193,22 +209,18 @@ def main(args):
         binscenters = np.array([0.5 * (bins1[j] + bins1[j]) for j in range(len(bins1)-1)])
         xspace = np.linspace(-rng, rng, 100000)
 
-        popt1, pcov1 = curve_fit(fit_function, xdata=binscenters, ydata=n1)
-        plt.plot(xspace, fit_function(xspace, *popt1), color='orange', linewidth=0.5)
-        popt2, pcov2 = curve_fit(fit_function, xdata=binscenters, ydata=n2)
-        plt.plot(xspace, fit_function(xspace, *popt2), color='green', linewidth=0.5)
-        popt3, pcov3 = curve_fit(fit_function, xdata=binscenters, ydata=n3)
-        plt.plot(xspace, fit_function(xspace, *popt3), color='red', linewidth=0.5)
-        popt4, pcov4 = curve_fit(fit_function, xdata=binscenters, ydata=n4)
-        plt.plot(xspace, fit_function(xspace, *popt4), color='steelblue', linewidth=0.5)
-        popt5, pcov5 = curve_fit(fit_function, xdata=binscenters, ydata=n5)
-        plt.plot(xspace, fit_function(xspace, *popt5), color='darkviolet', linewidth=0.5)
-        popt6, pcov6 = curve_fit(fit_function, xdata=binscenters, ydata=n6)
-        plt.plot(xspace, fit_function(xspace, *popt6), color='navy', linewidth=0.5)
-
-        zone=[temp["{}".format(variables[i])],temp2["{}".format(variables[i])],temp3["{}".format(variables[i])],temp4["{}".format(variables[i])],temp5["{}".format(variables[i])],temp6["{}".format(variables[i])]]
-        x=np.array([zone[j].mean() for j in range(0,6)])
-        resolution=[popt1[1], popt2[1], popt3[1],popt4[1],popt5[1],popt6[1]]
+        popt1, pcov1 = curve_fit(Normal, xdata=binscenters, ydata=n1)
+        plt.plot(xspace, Normal(xspace, *popt1), color='orange', linewidth=0.5)
+        popt2, pcov2 = curve_fit(Normal, xdata=binscenters, ydata=n2)
+        plt.plot(xspace, Normal(xspace, *popt2), color='green', linewidth=0.5)
+        popt3, pcov3 = curve_fit(Normal, xdata=binscenters, ydata=n3)
+        plt.plot(xspace, Normal(xspace, *popt3), color='red', linewidth=0.5)
+        popt4, pcov4 = curve_fit(Normal, xdata=binscenters, ydata=n4)
+        plt.plot(xspace, Normal(xspace, *popt4), color='steelblue', linewidth=0.5)
+        popt5, pcov5 = curve_fit(Normal, xdata=binscenters, ydata=n5)
+        plt.plot(xspace, Normal(xspace, *popt5), color='darkviolet', linewidth=0.5)
+        popt6, pcov6 = curve_fit(Normal, xdata=binscenters, ydata=n6)
+        plt.plot(xspace, Normal(xspace, *popt6), color='navy', linewidth=0.5)
 
         plt.xlabel("Resolution")
         plt.ylabel("Normalized arbitrary units")
@@ -218,10 +230,26 @@ def main(args):
         pp.savefig()
         plt.clf()
 
+        zone=[temp["{}".format(variables[i])],temp2["{}".format(variables[i])],temp3["{}".format(variables[i])],temp4["{}".format(variables[i])],temp5["{}".format(variables[i])],temp6["{}".format(variables[i])]]
+        x=np.array([zone[j].mean() for j in range(0,6)])
+        resolution=np.array([popt1[1], popt2[1], popt3[1],popt4[1],popt5[1],popt6[1]])
+        fitRange= np.linspace(x[0], x[5], 100000)
+
         plt.scatter(x,resolution, color=['orange', 'green', 'red', 'steelblue', 'darkviolet', 'navy'], marker = 'o')
-        #plt.plot(x[0], resolution[0], color='orange')
-        #plt.plot(x[1], resolution[1], color='green')
-        #plt.plot(x[2], resolution[2], color='red')
+        if variables[i] in linear:
+            popt, pcov = curve_fit(Linear, xdata=x, ydata=resolution)
+            plt.plot(fitRange, Linear(fitRange, *popt), color='black', linewidth=0.8, label='linear fit',linestyle='-')
+        if variables[i] in quadratic:
+            popt, pcov = curve_fit(Quadratic, xdata=x, ydata=resolution)
+            plt.plot(fitRange, Quadratic(fitRange, *popt), color='black', linewidth=0.8,label='quadratic fit',linestyle='--')
+        if variables[i] in exponential:
+            popt, pcov = curve_fit(Exponential, xdata=x, ydata=resolution)
+            plt.plot(fitRange, Exponential(fitRange, *popt), color='black', linewidth=0.8,label='exponential fit',linestyle='-.')
+        if variables[i] in logaritmic:
+            popt, pcov = curve_fit(Logaritmic, xdata=x, ydata=resolution)
+            plt.plot(fitRange, Logaritmic(fitRange, *popt), color='black', linewidth=0.8,label='logaritmic fit',linestyle=':')        
+
+        
         if units[i]:
             plt.xlabel("Mean of intervall of {} / {}".format(variables[i], units[i]))
         else:
@@ -229,6 +257,7 @@ def main(args):
         plt.ylabel("Mean of Resolution in normalized arbitrary units")
         plt.title("Quantified Resolution of used Intervalls of {}".format(variables[i]))
         plt.grid()
+        plt.legend()
         pp.savefig()
         plt.clf()
 
