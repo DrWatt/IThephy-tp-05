@@ -35,7 +35,7 @@ def main(args):
         quadratic=["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y","V0_M","hminus_IP_OWNPV","hplus_IPCHI2_OWNPV", "hminus_IPCHI2_OWNPV","hplus_PX","hminus_PX", "hminus_PY","hplus_eta_TRUE","hplus_eta","Lambda_eta_TRUE","Lambda_eta"]
         exponential=["V0_FDCHI2_ORIVX"]
         logaritmic=["hplus_PT_TRUE","hplus_PT","Angle_TRUE","Angle","hplus_PZ", "hplus_P","hplus_PZ", "hplus_P","Lambda_E"]
-        
+
     else:
         data = data.drop(data[data['hplus_TRACK_Type'] == 5 ].index)
         linear=['nTracks',"Lambda_E","hminus_IP_OWNPV","hminus_IPCHI2_OWNPV","hminus_PZ", "hminus_P","hminus_eta_TRUE","hminus_eta","hplus_PT_TRUE","hplus_PT"]
@@ -222,6 +222,13 @@ def main(args):
         popt6, pcov6 = curve_fit(Normal, xdata=binscenters, ydata=n6)
         plt.plot(xspace, Normal(xspace, *popt6), color='navy', linewidth=0.5)
 
+        perr1 = np.sqrt(np.diag(pcov1))
+        perr2 = np.sqrt(np.diag(pcov2))
+        perr3 = np.sqrt(np.diag(pcov3))
+        perr4 = np.sqrt(np.diag(pcov4))
+        perr5 = np.sqrt(np.diag(pcov5))
+        perr6 = np.sqrt(np.diag(pcov6))
+
         plt.xlabel("Resolution")
         plt.ylabel("Normalized arbitrary units")
         plt.title("Resolution of used Intervalls of {}".format(variables[i]))
@@ -233,9 +240,11 @@ def main(args):
         zone=[temp["{}".format(variables[i])],temp2["{}".format(variables[i])],temp3["{}".format(variables[i])],temp4["{}".format(variables[i])],temp5["{}".format(variables[i])],temp6["{}".format(variables[i])]]
         x=np.array([zone[j].mean() for j in range(0,6)])
         resolution=np.array([popt1[1], popt2[1], popt3[1],popt4[1],popt5[1],popt6[1]])
+        error = np.array([perr1[1], perr2[1], perr3[1], perr4[1], perr5[1], perr6[1]])
         fitRange= np.linspace(x[0], x[5], 100000)
 
         plt.scatter(x,resolution, color=['orange', 'green', 'red', 'steelblue', 'darkviolet', 'navy'], marker = 'o')
+        plt.errorbar(x, resolution, yerr=error, ecolor=['orange', 'green', 'red', 'steelblue', 'darkviolet', 'navy'], linestyle='none')
         if variables[i] in linear:
             popt, pcov = curve_fit(Linear, xdata=x, ydata=resolution)
             plt.plot(fitRange, Linear(fitRange, *popt), color='black', linewidth=0.8, label='linear fit',linestyle='-')
@@ -247,9 +256,9 @@ def main(args):
             plt.plot(fitRange, Exponential(fitRange, *popt), color='black', linewidth=0.8,label='exponential fit',linestyle='-.')
         if variables[i] in logaritmic:
             popt, pcov = curve_fit(Logaritmic, xdata=x, ydata=resolution)
-            plt.plot(fitRange, Logaritmic(fitRange, *popt), color='black', linewidth=0.8,label='logaritmic fit',linestyle=':')        
+            plt.plot(fitRange, Logaritmic(fitRange, *popt), color='black', linewidth=0.8,label='logaritmic fit',linestyle=':')
 
-        
+
         if units[i]:
             plt.xlabel("Mean of intervall of {} / {}".format(variables[i], units[i]))
         else:
