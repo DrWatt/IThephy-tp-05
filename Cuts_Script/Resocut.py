@@ -38,7 +38,7 @@ def main(args):
 
     else:
         data = data.drop(data[data['hplus_TRACK_Type'] == 5 ].index)
-        linear=['nTracks',"Lambda_E","hminus_IP_OWNPV","hminus_IPCHI2_OWNPV","hminus_PZ", "hminus_P","hminus_eta_TRUE","hminus_eta","hplus_PT_TRUE","hplus_PT"]
+        linear=['nTracks',"Lambda_E","hminus_IP_OWNPV","hminus_IPCHI2_OWNPV", "hminus_PY","hminus_PZ", "hminus_P","hminus_eta_TRUE","hminus_eta","hplus_PT_TRUE","hplus_PT"]
         quadratic=["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y","V0_M","hminus_PX",'hplus_PY',"Angle_TRUE","Angle","hplus_eta_TRUE","hplus_eta"]
         exponential=["hplus_IP_OWNPV","hplus_eta_TRUE","hplus_eta","hminus_eta_TRUE","hminus_eta","Lambda_eta_TRUE","Lambda_eta"]
         logaritmic=["hplus_PZ", "hplus_P"]
@@ -246,17 +246,18 @@ def main(args):
         plt.scatter(x,resolution, color=['orange', 'green', 'red', 'steelblue', 'darkviolet', 'navy'], marker = 'o')
         plt.errorbar(x, resolution, yerr=error, ecolor=['orange', 'green', 'red', 'steelblue', 'darkviolet', 'navy'], linestyle='none')
         if variables[i] in linear:
-            popt, pcov = curve_fit(Linear, xdata=x, ydata=resolution)
+            popt, pcov = curve_fit(Linear, xdata=x, ydata=resolution, sigma=error)
             plt.plot(fitRange, Linear(fitRange, *popt), color='black', linewidth=0.8, label='linear fit',linestyle='-')
         if variables[i] in quadratic:
-            popt, pcov = curve_fit(Quadratic, xdata=x, ydata=resolution)
+            popt, pcov = curve_fit(Quadratic, xdata=x, ydata=resolution, sigma=error)
             plt.plot(fitRange, Quadratic(fitRange, *popt), color='black', linewidth=0.8,label='quadratic fit',linestyle='--')
         if variables[i] in exponential:
-            popt, pcov = curve_fit(Exponential, xdata=x, ydata=resolution)
+            popt, pcov = curve_fit(Exponential, xdata=x, ydata=resolution, sigma=error)
             plt.plot(fitRange, Exponential(fitRange, *popt), color='black', linewidth=0.8,label='exponential fit',linestyle='-.')
         if variables[i] in logaritmic:
-            popt, pcov = curve_fit(Logaritmic, xdata=x, ydata=resolution)
+            popt, pcov = curve_fit(Logaritmic, xdata=x, ydata=resolution, sigma=error)
             plt.plot(fitRange, Logaritmic(fitRange, *popt), color='black', linewidth=0.8,label='logaritmic fit',linestyle=':')
+
 
 
         if units[i]:
