@@ -31,10 +31,10 @@ def main(args):
 
     if args.down == 1:
         data = data.drop(data[data['hplus_TRACK_Type'] == 3 ].index)
-        linear=["V0_ENDVERTEX_Z","V0_ENDVERTEX_CHI2","V0_FD_ORIVX","hplus_IP_OWNPV", "hminus_PZ", "hminus_P","hminus_PT_TRUE","hminus_PT","Angle_TRUE","Angle"]
-        quadratic=["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y","V0_M","hminus_IP_OWNPV","hplus_IPCHI2_OWNPV", "hminus_IPCHI2_OWNPV","hplus_PX","hminus_PX", "hminus_PY","hplus_eta_TRUE","hplus_eta","Lambda_eta_TRUE","Lambda_eta"]
+        linear=["V0_ENDVERTEX_Z","V0_ENDVERTEX_CHI2","V0_FD_ORIVX","hplus_IP_OWNPV", "hminus_PZ", "hminus_P","hminus_PT_TRUE","hminus_PT","Angle_TRUE","Angle","hplus_PX_abs","hminus_PX_abs","hminus_PY_abs","nTracks","Lambda_PT_TRUE","Lambda_PT"]
+        quadratic=["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y","V0_M","hminus_IP_OWNPV","hplus_IPCHI2_OWNPV", "hminus_IPCHI2_OWNPV","hplus_PX","hminus_PX", "hminus_PY","hplus_eta_TRUE","hplus_eta","Lambda_eta_TRUE","Lambda_eta","hplus_PY_abs","hminus_eta_TRUE","hminus_eta","Lambda_PT_TRUE","Lambda_PT"]
         exponential=["V0_FDCHI2_ORIVX"]
-        logaritmic=["hplus_PT_TRUE","hplus_PT","Angle_TRUE","Angle","hplus_PZ", "hplus_P","hplus_PZ", "hplus_P","Lambda_E"]
+        logaritmic=["hplus_PT_TRUE","hplus_PT","Angle_TRUE","Angle","hplus_PZ", "hplus_P","hplus_PZ", "hplus_P","Lambda_E","hplus_PX_abs"]
 
     else:
         data = data.drop(data[data['hplus_TRACK_Type'] == 5 ].index)
@@ -253,16 +253,16 @@ def main(args):
         plt.errorbar(x, resolution, yerr=error, ecolor=['orange', 'green', 'red', 'steelblue', 'darkviolet', 'navy'], linestyle='none')
         if variables[i] in linear:
             popt, pcov = curve_fit(Linear, xdata=x, ydata=resolution, sigma=error)
-            plt.plot(fitRange, Linear(fitRange, *popt), color='black', linewidth=0.8, label='linear fit',linestyle='-')
+            plt.plot(fitRange, Linear(fitRange, *popt), color='black', linewidth=0.8, label='linear fit: {0:1.2e}*x+{1:1.2e}'.format(popt[0],popt[1]),linestyle='-')
         if variables[i] in quadratic:
             popt, pcov = curve_fit(Quadratic, xdata=x, ydata=resolution, sigma=error)
-            plt.plot(fitRange, Quadratic(fitRange, *popt), color='black', linewidth=0.8,label='quadratic fit',linestyle='--')
+            plt.plot(fitRange, Quadratic(fitRange, *popt), color='black', linewidth=0.8,label='quadratic fit: {0:1.2e}*x^2+{1:1.2e}*x+{2:1.2e}'.format(popt[0],popt[1],popt[2]),linestyle='--')
         if variables[i] in exponential:
             popt, pcov = curve_fit(Exponential, xdata=x, ydata=resolution, sigma=error)
-            plt.plot(fitRange, Exponential(fitRange, *popt), color='black', linewidth=0.8,label='exponential fit',linestyle='-.')
+            plt.plot(fitRange, Exponential(fitRange, *popt), color='black', linewidth=0.8,label='exponential fit: {0:1.2e}*exp(-{1:1.2e}*x)+{2:1.2e}'.format(popt[0],popt[1],popt[2]),linestyle='-.')
         if variables[i] in logaritmic:
             popt, pcov = curve_fit(Logaritmic, xdata=x, ydata=resolution, sigma=error)
-            plt.plot(fitRange, Logaritmic(fitRange, *popt), color='black', linewidth=0.8,label='logaritmic fit',linestyle=':')
+            plt.plot(fitRange, Logaritmic(fitRange, *popt), color='black', linewidth=0.8,label='logaritmic fit: {0:1.2e}*ln(-{1:1.2e}*x)+{2:1.2e}'.format(popt[0],popt[1],popt[2]),linestyle=':')
 
 
 
