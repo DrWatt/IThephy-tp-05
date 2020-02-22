@@ -38,8 +38,8 @@ def main(args):
 
     else:
         data = data.drop(data[data['hplus_TRACK_Type'] == 5 ].index)
-        linear=['nTracks',"Lambda_E","hminus_IP_OWNPV","hminus_IPCHI2_OWNPV", "hminus_PY_abs","hminus_PZ", "hminus_P","hminus_eta_TRUE","hminus_eta","hplus_PT_TRUE","hplus_PT"]
-        quadratic=["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y","V0_M","hminus_PX_abs",'hplus_PY_abs',"Angle_TRUE","Angle","hplus_eta_TRUE","hplus_eta"]
+        linear=['nTracks',"Lambda_E","hminus_IP_OWNPV","hminus_IPCHI2_OWNPV", "hminus_PY_abs","hminus_PZ", "hminus_P","hminus_eta_TRUE","hminus_eta","hplus_PT_TRUE","hplus_PT", "hminus_PX_abs", "hplus_PY_abs", "hplus_PX_abs", "V0_ENDVERTEX_Z", "V0_ENDVERTEX_CHI2", "V0_FD_ORIVX", "V0_FDCHI2_ORIVX", "hplus_IP_OWNPV", "hplus_IPCHI2_OWNPV", "hminus_PT_TRUE", "hminus_PT", "Lambda_PT_TRUE", "Lambda_PT"]
+        quadratic=["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y","V0_M","Angle_TRUE","Angle","hplus_eta_TRUE","hplus_eta", "V0_FDCHI2_ORIVX", "V0_FD_ORIVX", "hplus_IPCHI2_OWNPV", "hplus_PX_abs", "hminus_PX_abs", "hminus_PY_abs", "hminus_PT_TRUE", "hminus_PT"]
         exponential=["hplus_IP_OWNPV","hplus_eta_TRUE","hplus_eta","hminus_eta_TRUE","hminus_eta","Lambda_eta_TRUE","Lambda_eta"]
         logaritmic=["hplus_PZ", "hplus_P"]
 
