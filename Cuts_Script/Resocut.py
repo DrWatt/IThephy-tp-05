@@ -4,6 +4,7 @@ import argparse
 import sys
 import math
 import matplotlib.pyplot as plt
+import json
 from root_pandas import read_root, to_root
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.optimize import curve_fit
@@ -29,7 +30,14 @@ def main(args):
     #np.savetxt(file, ["Calculated Parameters\n"], "%s")
 
     data = read_root(args.file)
-    pp = PdfPages(args.save)
+    pp = PdfPages(args.save + ".pdf")
+    ###Creating Json-File to dump all the numbers into
+    with open(args.save + ".json", 'w') as json_file:
+        json.dump("Parameters", json_file)
+        json_file.write("\n")
+
+    #with open(args.save + ".json", 'a') as json_file:
+    #    json.dump("Ja los", json_file)
 
     if args.down == 1:
         data = data.drop(data[data['hplus_TRACK_Type'] == 3 ].index)
@@ -260,20 +268,24 @@ def main(args):
         if variables[i] in linear:
             popt, pcov = curve_fit(Linear, xdata=x, ydata=resolution, sigma=error)
             plt.plot(fitRange, Linear(fitRange, *popt), color='black', linewidth=0.8, label='linear fit: {0:1.2e}*x+{1:1.2e}'.format(popt[0],popt[1]),linestyle='-')
+            Lin_dict = {"a:": "{0:1.2e}".format(popt[0]), "b:": "{0:1.2e}".format(popt[1])}
         if variables[i] in quadratic:
             popt, pcov = curve_fit(Quadratic, xdata=x, ydata=resolution, sigma=error)
             plt.plot(fitRange, Quadratic(fitRange, *popt), color='black', linewidth=0.8,label='quadratic fit: {0:1.2e}*x^2+{1:1.2e}*x+{2:1.2e}'.format(popt[0],popt[1],popt[2]),linestyle='--')
+            Quad_dict = {"a:": "{0:1.2e}".format(popt[0]), "b:": "{0:1.2e}".format(popt[1]), "c:": "{0:1.2e}".format(popt[2])}
         if variables[i] in exponential:
             popt, pcov = curve_fit(Exponential, xdata=x, ydata=resolution, sigma=error)
             plt.plot(fitRange, Exponential(fitRange, *popt), color='black', linewidth=0.8,label='exponential fit: {0:1.2e}*exp(-{1:1.2e}*x)+{2:1.2e}'.format(popt[0],popt[1],popt[2]),linestyle='-.')
+            Exp_dict = {"a:": "{0:1.2e}".format(popt[0]), "b:": "{0:1.2e}".format(popt[1]), "c:": "{0:1.2e}".format(popt[2])}
         if variables[i] in logaritmic:
             popt, pcov = curve_fit(Logaritmic, xdata=x, ydata=resolution, sigma=error)
             plt.plot(fitRange, Logaritmic(fitRange, *popt), color='black', linewidth=0.8,label='logaritmic fit: {0:1.2e}*ln(-{1:1.2e}*x)+{2:1.2e}'.format(popt[0],popt[1],popt[2]),linestyle=':')
+            Log_dict = {"a:": "{0:1.2e}".format(popt[0]), "b:": "{0:1.2e}".format(popt[1]), "c:": "{0:1.2e}".format(popt[2])}
         if variables[i] in gauss:
             popt, pcov = curve_fit(Gauss, xdata=x, ydata=resolution, sigma=error, p0=pnull[pcounter])
             plt.plot(fitRange, Gauss(fitRange, *popt), color='black', linewidth=0.8,label='gaussian fit',linestyle=':') #Atm without the fitparameter in the label
             pcounter += 1
-
+            Gauss_dict = {"mu:": "{0:1.2e}".format(popt[0]), "sigma:": "{0:1.2e}".format(popt[1]), "c:": "{0:1.2e}".format(popt[2]), "d:": "{0:1.2e}".format(popt[3])}
 
         if units[i]:
             plt.xlabel("Mean of intervall of {} / {}".format(variables[i], units[i]))
@@ -286,7 +298,7 @@ def main(args):
         pp.savefig()
         plt.clf()
 
-        #if variables[i] == "V0_ENDVERTEX_Y":
+        #if variables[i] == "V0_ENDVERTEX_Y": #Test for gauss and json
         #    pp.close()
         #    sys.exit()
 
@@ -306,6 +318,40 @@ def main(args):
         print("very high {} mean:".format(variables[i]), temp6["Resolution"].mean())
         print("very high {} std:".format(variables[i]), temp6["Resolution"].std())
 
+        ###Dictionary for json_file
+        Interv_dict = {"low {} mean:".format(variables[i]) : temp["Resolution"].mean(),
+         "low {} std:".format(variables[i]): temp["Resolution"].std(),
+         "low intermediate {} mean:".format(variables[i]): temp2["Resolution"].mean(),
+         "low intermediate {} std:".format(variables[i]): temp2["Resolution"].std(),
+         "intermediate {} mean:".format(variables[i]): temp3["Resolution"].mean(),
+         "intermediate {} std:".format(variables[i]): temp3["Resolution"].std(),
+         "high intermediate {} mean:".format(variables[i]): temp4["Resolution"].mean(),
+         "high intermediate {} std:".format(variables[i]): temp4["Resolution"].std(),
+         "high {} mean:".format(variables[i]): temp5["Resolution"].mean(),
+         "high {} std:".format(variables[i]): temp5["Resolution"].std(),
+         "very high {} mean:".format(variables[i]): temp6["Resolution"].mean(),
+         "very high {} std:".format(variables[i]): temp6["Resolution"].std()}
+
+        with open(args.save + ".json", 'a') as json_file:
+            json_file.write('\n-----------------------\n')
+            json_file.write('{}\n'.format(variables[i]))
+            json.dump(Interv_dict, json_file, indent=4)
+
+            if variables[i] in linear:
+                json_file.write("\t Linear Fit: a*x + b")
+                json.dump(Lin_dict, json_file, indent=4)
+            if variables[i] in quadratic:
+                json_file.write("\t Quadratic Fit: a*x² + b * x + c")
+                json.dump(Quad_dict, json_file, indent=4)
+            if variables[i] in exponential:
+                json_file.write("\t Exponential Fit: a * e^(-b * x) + c")
+                json.dump(Exp_dict, json_file, indent=4)
+            if variables[i] in logaritmic:
+                json_file.write("\t Logaritmic Fit: a * log(b * x) + c")
+                json.dump(Log_dict, json_file, indent=4)
+            if variables[i] in gauss:
+                json_file.write("\t Modified Gaussian Fit: ((1/(sqrt(2*pi)*sigma)) * e^(-1.0 * (x - mu)^2 / (2 * sigma^2))) * c + d")
+                json.dump(Gauss_dict, json_file, indent=4)
 
 
 
