@@ -20,6 +20,8 @@ def Logaritmic(x, a, b, c):
     return a*np.log(b*x)+c
 def Exponential(x, a, b, c):
     return a*np.exp(-b*x)+c
+def Gauss(x, mu, sigma, c, d):
+    return ((1/(math.sqrt(2*math.pi)*sigma)) * np.exp(-1.0 * (x - mu)**2 / (2 * sigma**2)))*c + d #Normal distribution with a factor and moved in y direction
 
 def main(args):
     #filename = args.save.replace('.pdf', '') + '_Data.json'
@@ -42,6 +44,10 @@ def main(args):
         quadratic=["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y","V0_M","Angle_TRUE","Angle","hplus_eta_TRUE","hplus_eta", "V0_FDCHI2_ORIVX", "V0_FD_ORIVX", "hplus_IPCHI2_OWNPV", "hplus_PX_abs", "hminus_PX_abs", "hminus_PY_abs", "hminus_PT_TRUE", "hminus_PT"]
         exponential=["hplus_IP_OWNPV","hplus_eta_TRUE","hplus_eta","hminus_eta_TRUE","hminus_eta","Lambda_eta_TRUE","Lambda_eta"]
         logaritmic=["hplus_PZ", "hplus_P"]
+        gauss = ["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y"]
+        ###P0 for the gaussian fits
+        pnull = [[0,1,1,1.1], [0,2,1,1.28]]
+        pcounter = 0
 
     #Declaring real masses from pdg
     pionm = 139.57061
@@ -263,7 +269,10 @@ def main(args):
         if variables[i] in logaritmic:
             popt, pcov = curve_fit(Logaritmic, xdata=x, ydata=resolution, sigma=error)
             plt.plot(fitRange, Logaritmic(fitRange, *popt), color='black', linewidth=0.8,label='logaritmic fit: {0:1.2e}*ln(-{1:1.2e}*x)+{2:1.2e}'.format(popt[0],popt[1],popt[2]),linestyle=':')
-
+        if variables[i] in gauss:
+            popt, pcov = curve_fit(Gauss, xdata=x, ydata=resolution, sigma=error, p0=pnull[pcounter])
+            plt.plot(fitRange, Gauss(fitRange, *popt), color='black', linewidth=0.8,label='gaussian fit',linestyle=':')
+            pcounter += 1
 
 
         if units[i]:
@@ -276,6 +285,10 @@ def main(args):
         plt.legend()
         pp.savefig()
         plt.clf()
+
+        #if variables[i] == "V0_ENDVERTEX_Y":
+        #    pp.close()
+        #    sys.exit()
 
 
         #np.savetxt(file, [temp["Resolution"].mean()])
