@@ -271,7 +271,7 @@ def main(args):
             plt.plot(fitRange, Logaritmic(fitRange, *popt), color='black', linewidth=0.8,label='logaritmic fit: {0:1.2e}*ln(-{1:1.2e}*x)+{2:1.2e}'.format(popt[0],popt[1],popt[2]),linestyle=':')
         if variables[i] in gauss:
             popt, pcov = curve_fit(Gauss, xdata=x, ydata=resolution, sigma=error, p0=pnull[pcounter])
-            plt.plot(fitRange, Gauss(fitRange, *popt), color='black', linewidth=0.8,label='gaussian fit',linestyle=':')
+            plt.plot(fitRange, Gauss(fitRange, *popt), color='black', linewidth=0.8,label='gaussian fit',linestyle=':') #Atm without the fitparameter in the label
             pcounter += 1
 
 
