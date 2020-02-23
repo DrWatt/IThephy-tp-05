@@ -249,6 +249,13 @@ def main(args):
         perr5 = np.sqrt(np.diag(pcov5))
         perr6 = np.sqrt(np.diag(pcov6))
 
+        Normal_dict = {"low {} mean:".format(variables[i]) : "{0:1.2e} +/- {1:1.2}".format(popt1[1], perr1[1]),
+         "low intermediate {} mean:".format(variables[i]): "{0:1.2e} +/- {1:1.2}".format(popt2[1], perr2[1]),
+         "intermediate {} mean:".format(variables[i]): "{0:1.2e} +/- {1:1.2}".format(popt3[1], perr3[1]),
+         "high intermediate {} mean:".format(variables[i]): "{0:1.2e} +/- {1:1.2}".format(popt4[1], perr4[1]),
+         "high {} mean:".format(variables[i]): "{0:1.2e} +/- {1:1.2}".format(popt5[1], perr5[1]),
+         "very high {} mean:".format(variables[i]): "{0:1.2e} +/- {1:1.2}".format(popt6[1], perr6[1])}
+
         plt.xlabel("Resolution")
         plt.ylabel("Normalized arbitrary units")
         plt.title("Resolution of used Intervalls of {}".format(variables[i]))
@@ -319,7 +326,7 @@ def main(args):
         print("very high {} std:".format(variables[i]), temp6["Resolution"].std())
 
         ###Dictionary for json_file
-        Interv_dict = {"low {} mean:".format(variables[i]) : temp["Resolution"].mean(),
+        Bin_dict = {"low {} mean:".format(variables[i]) : temp["Resolution"].mean(),
          "low {} std:".format(variables[i]): temp["Resolution"].std(),
          "low intermediate {} mean:".format(variables[i]): temp2["Resolution"].mean(),
          "low intermediate {} std:".format(variables[i]): temp2["Resolution"].std(),
@@ -335,7 +342,10 @@ def main(args):
         with open(args.save + ".json", 'a') as json_file:
             json_file.write('\n-----------------------\n')
             json_file.write('{}\n'.format(variables[i]))
-            json.dump(Interv_dict, json_file, indent=4)
+            json_file.write("\n Intervalls (From Bins)")
+            json.dump(Bin_dict, json_file, indent=4)
+            json_file.write("\n Fitted Resolutions")
+            json.dump(Normal_dict, json_file, indent=4)
 
             if variables[i] in linear:
                 json_file.write("\t Linear Fit: a*x + b")
