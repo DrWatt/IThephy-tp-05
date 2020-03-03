@@ -4,6 +4,7 @@ import argparse
 import sys
 import math
 import matplotlib.pyplot as plt
+import json
 from root_pandas import read_root, to_root
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.optimize import curve_fit
@@ -20,6 +21,8 @@ def Logaritmic(x, a, b, c):
     return a*np.log(b*x)+c
 def Exponential(x, a, b, c):
     return a*np.exp(-b*x)+c
+def Gauss(x, mu, sigma, c, d):
+    return ((1/(math.sqrt(2*math.pi)*sigma)) * np.exp(-1.0 * (x - mu)**2 / (2 * sigma**2)))*c + d #Normal distribution with a factor and moved in y direction
 
 def main(args):
     #filename = args.save.replace('.pdf', '') + '_Data.json'
@@ -27,14 +30,21 @@ def main(args):
     #np.savetxt(file, ["Calculated Parameters\n"], "%s")
 
     data = read_root(args.file)
-    pp = PdfPages(args.save)
+    pp = PdfPages(args.save + ".pdf")
+    ###Creating Json-File to dump all the numbers into
+    with open(args.save + ".json", 'w') as json_file:
+        json.dump("Parameters", json_file)
+        json_file.write("\n")
+
+    #with open(args.save + ".json", 'a') as json_file:
+    #    json.dump("Ja los", json_file)
 
     if args.down == 1:
         data = data.drop(data[data['hplus_TRACK_Type'] == 3 ].index)
-        linear=["V0_ENDVERTEX_Z","V0_ENDVERTEX_CHI2","V0_FD_ORIVX","hplus_IP_OWNPV", "hminus_PZ", "hminus_P","hminus_PT_TRUE","hminus_PT","Angle_TRUE","Angle"]
-        quadratic=["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y","V0_M","hminus_IP_OWNPV","hplus_IPCHI2_OWNPV", "hminus_IPCHI2_OWNPV","hplus_PX","hminus_PX", "hminus_PY","hplus_eta_TRUE","hplus_eta","Lambda_eta_TRUE","Lambda_eta"]
+        linear=["V0_ENDVERTEX_Z","V0_ENDVERTEX_CHI2","V0_FD_ORIVX","hplus_IP_OWNPV", "hminus_PZ", "hminus_P","hminus_PT_TRUE","hminus_PT","Angle_TRUE","Angle","hplus_PX_abs","hminus_PX_abs","hminus_PY_abs","nTracks","Lambda_PT_TRUE","Lambda_PT"]
+        quadratic=["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y","V0_M","hminus_IP_OWNPV","hplus_IPCHI2_OWNPV", "hminus_IPCHI2_OWNPV","hplus_PX","hminus_PX", "hminus_PY","hplus_eta_TRUE","hplus_eta","Lambda_eta_TRUE","Lambda_eta","hplus_PY_abs","hminus_eta_TRUE","hminus_eta","Lambda_PT_TRUE","Lambda_PT"]
         exponential=["V0_FDCHI2_ORIVX"]
-        logaritmic=["hplus_PT_TRUE","hplus_PT","Angle_TRUE","Angle","hplus_PZ", "hplus_P","hplus_PZ", "hplus_P","Lambda_E"]
+        logaritmic=["hplus_PT_TRUE","hplus_PT","Angle_TRUE","Angle","hplus_PZ", "hplus_P","hplus_PZ", "hplus_P","Lambda_E","hplus_PX_abs"]
 
     else:
         data = data.drop(data[data['hplus_TRACK_Type'] == 5 ].index)
@@ -42,6 +52,10 @@ def main(args):
         quadratic=["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y","V0_M","Angle_TRUE","Angle","hplus_eta_TRUE","hplus_eta", "V0_FDCHI2_ORIVX", "V0_FD_ORIVX", "hplus_IPCHI2_OWNPV", "hplus_PX_abs", "hminus_PX_abs", "hminus_PY_abs", "hminus_PT_TRUE", "hminus_PT"]
         exponential=["hplus_IP_OWNPV","hplus_eta_TRUE","hplus_eta","hminus_eta_TRUE","hminus_eta","Lambda_eta_TRUE","Lambda_eta"]
         logaritmic=["hplus_PZ", "hplus_P"]
+        gauss = ["V0_ENDVERTEX_X", "V0_ENDVERTEX_Y"]
+        ###P0 for the gaussian fits
+        pnull = [[0,1,1,1.1], [0,2,1,1.28]]
+        pcounter = 0
 
     #Declaring real masses from pdg
     pionm = 139.57061
@@ -235,6 +249,13 @@ def main(args):
         perr5 = np.sqrt(np.diag(pcov5))
         perr6 = np.sqrt(np.diag(pcov6))
 
+        Normal_dict = {"low {} mean:".format(variables[i]) : "{0:1.2e} +/- {1:1.2}".format(popt1[1], perr1[1]),
+         "low intermediate {} mean:".format(variables[i]): "{0:1.2e} +/- {1:1.2}".format(popt2[1], perr2[1]),
+         "intermediate {} mean:".format(variables[i]): "{0:1.2e} +/- {1:1.2}".format(popt3[1], perr3[1]),
+         "high intermediate {} mean:".format(variables[i]): "{0:1.2e} +/- {1:1.2}".format(popt4[1], perr4[1]),
+         "high {} mean:".format(variables[i]): "{0:1.2e} +/- {1:1.2}".format(popt5[1], perr5[1]),
+         "very high {} mean:".format(variables[i]): "{0:1.2e} +/- {1:1.2}".format(popt6[1], perr6[1])}
+
         plt.xlabel("Resolution")
         plt.ylabel("Normalized arbitrary units")
         plt.title("Resolution of used Intervalls of {}".format(variables[i]))
@@ -253,18 +274,25 @@ def main(args):
         plt.errorbar(x, resolution, yerr=error, ecolor=['orange', 'green', 'red', 'steelblue', 'darkviolet', 'navy'], linestyle='none')
         if variables[i] in linear:
             popt, pcov = curve_fit(Linear, xdata=x, ydata=resolution, sigma=error)
-            plt.plot(fitRange, Linear(fitRange, *popt), color='black', linewidth=0.8, label='linear fit',linestyle='-')
+            plt.plot(fitRange, Linear(fitRange, *popt), color='black', linewidth=0.8, label='linear fit: {0:1.2e}*x+{1:1.2e}'.format(popt[0],popt[1]),linestyle='-')
+            Lin_dict = {"a:": "{0:1.2e}".format(popt[0]), "b:": "{0:1.2e}".format(popt[1])}
         if variables[i] in quadratic:
             popt, pcov = curve_fit(Quadratic, xdata=x, ydata=resolution, sigma=error)
-            plt.plot(fitRange, Quadratic(fitRange, *popt), color='black', linewidth=0.8,label='quadratic fit',linestyle='--')
+            plt.plot(fitRange, Quadratic(fitRange, *popt), color='black', linewidth=0.8,label='quadratic fit: {0:1.2e}*x^2+{1:1.2e}*x+{2:1.2e}'.format(popt[0],popt[1],popt[2]),linestyle='--')
+            Quad_dict = {"a:": "{0:1.2e}".format(popt[0]), "b:": "{0:1.2e}".format(popt[1]), "c:": "{0:1.2e}".format(popt[2])}
         if variables[i] in exponential:
             popt, pcov = curve_fit(Exponential, xdata=x, ydata=resolution, sigma=error)
-            plt.plot(fitRange, Exponential(fitRange, *popt), color='black', linewidth=0.8,label='exponential fit',linestyle='-.')
+            plt.plot(fitRange, Exponential(fitRange, *popt), color='black', linewidth=0.8,label='exponential fit: {0:1.2e}*exp(-{1:1.2e}*x)+{2:1.2e}'.format(popt[0],popt[1],popt[2]),linestyle='-.')
+            Exp_dict = {"a:": "{0:1.2e}".format(popt[0]), "b:": "{0:1.2e}".format(popt[1]), "c:": "{0:1.2e}".format(popt[2])}
         if variables[i] in logaritmic:
             popt, pcov = curve_fit(Logaritmic, xdata=x, ydata=resolution, sigma=error)
-            plt.plot(fitRange, Logaritmic(fitRange, *popt), color='black', linewidth=0.8,label='logaritmic fit',linestyle=':')
-
-
+            plt.plot(fitRange, Logaritmic(fitRange, *popt), color='black', linewidth=0.8,label='logaritmic fit: {0:1.2e}*ln(-{1:1.2e}*x)+{2:1.2e}'.format(popt[0],popt[1],popt[2]),linestyle=':')
+            Log_dict = {"a:": "{0:1.2e}".format(popt[0]), "b:": "{0:1.2e}".format(popt[1]), "c:": "{0:1.2e}".format(popt[2])}
+        if variables[i] in gauss:
+            popt, pcov = curve_fit(Gauss, xdata=x, ydata=resolution, sigma=error, p0=pnull[pcounter])
+            plt.plot(fitRange, Gauss(fitRange, *popt), color='black', linewidth=0.8,label='gaussian fit',linestyle=':') #Atm without the fitparameter in the label
+            pcounter += 1
+            Gauss_dict = {"mu:": "{0:1.2e}".format(popt[0]), "sigma:": "{0:1.2e}".format(popt[1]), "c:": "{0:1.2e}".format(popt[2]), "d:": "{0:1.2e}".format(popt[3])}
 
         if units[i]:
             plt.xlabel("Mean of intervall of {} / {}".format(variables[i], units[i]))
@@ -276,6 +304,10 @@ def main(args):
         plt.legend()
         pp.savefig()
         plt.clf()
+
+        #if variables[i] == "V0_ENDVERTEX_Y": #Test for gauss and json
+        #    pp.close()
+        #    sys.exit()
 
 
         #np.savetxt(file, [temp["Resolution"].mean()])
@@ -293,6 +325,43 @@ def main(args):
         print("very high {} mean:".format(variables[i]), temp6["Resolution"].mean())
         print("very high {} std:".format(variables[i]), temp6["Resolution"].std())
 
+        ###Dictionary for json_file
+        Bin_dict = {"low {} mean:".format(variables[i]) : temp["Resolution"].mean(),
+         "low {} std:".format(variables[i]): temp["Resolution"].std(),
+         "low intermediate {} mean:".format(variables[i]): temp2["Resolution"].mean(),
+         "low intermediate {} std:".format(variables[i]): temp2["Resolution"].std(),
+         "intermediate {} mean:".format(variables[i]): temp3["Resolution"].mean(),
+         "intermediate {} std:".format(variables[i]): temp3["Resolution"].std(),
+         "high intermediate {} mean:".format(variables[i]): temp4["Resolution"].mean(),
+         "high intermediate {} std:".format(variables[i]): temp4["Resolution"].std(),
+         "high {} mean:".format(variables[i]): temp5["Resolution"].mean(),
+         "high {} std:".format(variables[i]): temp5["Resolution"].std(),
+         "very high {} mean:".format(variables[i]): temp6["Resolution"].mean(),
+         "very high {} std:".format(variables[i]): temp6["Resolution"].std()}
+
+        with open(args.save + ".json", 'a') as json_file:
+            json_file.write('\n-----------------------\n')
+            json_file.write('{}\n'.format(variables[i]))
+            json_file.write("\n Intervalls (From Bins)")
+            json.dump(Bin_dict, json_file, indent=4)
+            json_file.write("\n Fitted Resolutions")
+            json.dump(Normal_dict, json_file, indent=4)
+
+            if variables[i] in linear:
+                json_file.write("\t Linear Fit: a*x + b")
+                json.dump(Lin_dict, json_file, indent=4)
+            if variables[i] in quadratic:
+                json_file.write("\t Quadratic Fit: a*x² + b * x + c")
+                json.dump(Quad_dict, json_file, indent=4)
+            if variables[i] in exponential:
+                json_file.write("\t Exponential Fit: a * e^(-b * x) + c")
+                json.dump(Exp_dict, json_file, indent=4)
+            if variables[i] in logaritmic:
+                json_file.write("\t Logaritmic Fit: a * log(b * x) + c")
+                json.dump(Log_dict, json_file, indent=4)
+            if variables[i] in gauss:
+                json_file.write("\t Modified Gaussian Fit: ((1/(sqrt(2*pi)*sigma)) * e^(-1.0 * (x - mu)^2 / (2 * sigma^2))) * c + d")
+                json.dump(Gauss_dict, json_file, indent=4)
 
 
 
