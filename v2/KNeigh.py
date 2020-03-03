@@ -14,8 +14,9 @@ from keras.optimizers import Adam
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold, cross_val_score
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.svm import SVR
 import xgboost as xgb
 from xgboost import XGBRegressor
 
@@ -37,7 +38,7 @@ def create_mlp(dim, regress=False):
 	return model
 
 
-down = 0
+down = 1
 #filename = args.save.replace('.pdf', '') + '_Data.json'
 #file = open(filename, 'wb')
 #np.savetxt(file, ["Calculated Parameters\n"], "%s")
@@ -109,8 +110,7 @@ for i in range(len(variables)):
     InterData = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][2]) | (data["{}".format(variables[i])] < Limits[i][1])].index)
     HighData = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][3]) | (data["{}".format(variables[i])] < Limits[i][2])].index)
 
-bst = XGBRegressor(learning_rate=0.1,max_depth=3)
-
+bst = XGBRegressor(learning_rate=0.15,max_depth=3,colsample_bytree=0.8,n_jobs=-1,n_estimators=100,num_parallel_tree=5,objective='reg:squarederror')
 
 
 data = data.dropna()
@@ -130,13 +130,23 @@ Xvalid = cs.transform(Xvalid)
 # 	epochs=10, batch_size=20)
 #dtrain=xgb.DMatrix(Xtrain,label=Ytrain)
 #dvalid=xgb.DMatrix(Xvalid,label=Yvalid)
-
+kf = KFold(n_splits=10,shuffle=True,random_state=seed)
+vali = cross_val_score(bst,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
 #print(bst.get_params())
+print("####################Xgboost")
 trainbst = bst.fit(Xtrain,Ytrain,eval_set=[(Xtrain, Ytrain), (Xvalid, Yvalid)])
-#print(trainbst.evals_result())
 
-neigh = KNeighborsRegressor(n_neighbors=5,weights='distance',n_jobs=-1)
+print(vali.mean())
+#print(trainbst.evals_result())
+print("####################KNN")
+neigh = KNeighborsRegressor(n_neighbors=10,weights='distance',n_jobs=-1)
 neigh.fit(Xtrain,Ytrain)
 print(neigh.get_params())
 print(neigh.score(Xvalid,Yvalid))
+"""
+print("##################SVM")
+s=SVR(verbose=True)
+s.fit(Xtrain,Ytrain)
+print(s.score(Xvalid,Yvalid))
 
+"""

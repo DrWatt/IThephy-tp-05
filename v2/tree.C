@@ -56,7 +56,7 @@ void tree::tocsv()
 		clog <<a->At(i)->GetName()<< endl;
 		o << a->At(i)->GetName() << ',';
 	}
-	o << "Lambda_E,hplus_P,hminus_P,Angle,Resolution\n";
+	o << "Lambda_E,hplus_P,hminus_P,Angle\n";
 
 
 
@@ -107,7 +107,7 @@ void tree::tocsv()
 	  o << hplus_P.at(jentry) << ',';
 	  o << hminus_P.at(jentry) << ',';
 	  o << Angle.at(jentry) << ',';
-	  o << Resolution.at(jentry) << ',';
+	  //o << Resolution.at(jentry) << ',';
 	  o << '\n';
 	}
 	o.close();
@@ -407,7 +407,7 @@ TCanvas* c = new TCanvas("c","c");
 
 void tree::Graphs()
 {
-/*
+
   auto time0 = chrono::system_clock::now();
 
   
