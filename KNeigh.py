@@ -14,6 +14,8 @@ from keras.optimizers import Adam
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVR
@@ -26,17 +28,17 @@ seed = 12345
 np.random.seed(seed)
 
 def create_mlp(dim, regress=False):
-	# define our MLP network
-	model = Sequential()
-	model.add(Dense(8, input_dim=dim, activation="relu"))
-	model.add(Dense(4, activation="relu"))
- 
+        model = Sequential()
+        model.add(Dense(16,input_dim=dim,kernel_initializer='normal',activation="relu"))
+        model.add(Dense(16, activation="relu"))
+        model.add(Dense(16, activation="relu"))
+        
 	# check to see if the regression node should be added
-	if regress:
-		model.add(Dense(1, activation="linear"))
+        if regress:
+                model.add(Dense(1, activation="linear"))
+        # return our model
+        return model
  
-	# return our model
-	return model
 
 
 down = 0
@@ -113,33 +115,39 @@ cs = MinMaxScaler()
 #     InterData = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][2]) | (data["{}".format(variables[i])] < Limits[i][1])].index)
 #     HighData = data.drop(data[(data["{}".format(variables[i])] >= Limits[i][3]) | (data["{}".format(variables[i])] < Limits[i][2])].index)
 
-bst = XGBRegressor(learning_rate=0.1,max_depth=4,n_jobs=-1,n_estimators=150,num_parallel_tree=10,objective='reg:squarederror',subsample=0.8)
+
 
 
 data = data.dropna()
-
 Xtrain,Xvalid,Ytrain,Yvalid=train_test_split(data[["V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","Angle","nTracks","V0_ORIVX_Z","V0_ORIVX_CHI2","V0_ORIVX_Y"]],data["Resolution"],test_size=0.3)
-
 Xtrain = cs.fit_transform(Xtrain)
 Xvalid = cs.transform(Xvalid)
 
-# model = create_mlp(Xtrain.shape[1], regress=True)
-# opt = Adam(lr=1e-3, decay=1e-3 / 200)
-# model.compile(loss="mean_absolute_percentage_error", optimizer=opt)
- 
-# # train the model
-# print("[INFO] training model...")
-# model.fit(Xtrain, Ytrain, validation_data=(Xvalid, Yvalid),
-# 	epochs=10, batch_size=20)
+
+print("------------------MLP----------------------------")
+model = create_mlp(Xtrain.shape[1], regress=True)
+opt = Adam(lr=1e-3, decay=1e-3 / 200)
+model.compile(loss="mean_squared_error", optimizer=opt, metrics=['mae','accuracy'])
+ # # train the model
+print("[INFO] training model...")
+model.fit(Xtrain, Ytrain, validation_data=(Xvalid, Yvalid),epochs=10, batch_size=20,verbose=True)
+test_score =model.evaluate(Xvalid, Yvalid, batch_size=20)
+print('Score:', test_score)
 #dtrain=xgb.DMatrix(Xtrain,label=Ytrain)
 #dvalid=xgb.DMatrix(Xvalid,label=Yvalid)
+print(model.metrics_names)
+
 kf = KFold(n_splits=10,shuffle=True,random_state=seed)
-vali = cross_val_score(bst,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
 #print(bst.get_params())
-print("####################Xgboost")
+
+
+print("------------------------Xgboost------------------------")
+bst = XGBRegressor(learning_rate=0.1,max_depth=4,n_jobs=-1,n_estimators=150,num_parallel_tree=10,objective='reg:squarederror',subsample=0.8)
 trainbst = bst.fit(Xtrain,Ytrain,eval_set=[(Xtrain, Ytrain), (Xvalid, Yvalid)],eval_metric=['rmse','mae'],verbose=True)
+vali = cross_val_score(trainbst,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
 evres=bst.evals_result() # See MAE metric
-print(vali.mean())
+
+#print(vali.mean())
 
 plt.plot(list(evres['validation_0']['rmse']))
 plt.plot(list(evres['validation_1']['rmse']))
@@ -147,7 +155,6 @@ plt.title('Model rmse')
 plt.ylabel('rmse')       
 plt.xlabel('Epoch')
 plt.legend(['Train', 'Test'], loc='upper left')
-#plt.savefig("Keras_NN_Accuracy.png")
 plt.show() 
 plt.clf()
 
@@ -157,18 +164,18 @@ plt.title('Model mae')
 plt.ylabel('mae')       
 plt.xlabel('Epoch')
 plt.legend(['Train', 'Test'], loc='upper left')
-#plt.savefig("Keras_NN_Accuracy.png")
 plt.show()
 plt.clf()
-    
 #print(trainbst.evals_result())
-print("####################KNN")
+
+
+print("--------------------KNeighbors-------------------------")
 neigh = KNeighborsRegressor(n_neighbors=10,weights='distance',n_jobs=-1)
 valiN = cross_val_score(neigh,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
 print(valiN.mean())
 neigh.fit(Xtrain,Ytrain)
 print(neigh.get_params())
-print(neigh.score(Xvalid,Yvalid))
+print('Score:',neigh.score(Xvalid,Yvalid))
 # plt.plot(list(evres['validation_0']['rmse']))
 # plt.plot(list(evres['validation_1']['rmse']))
 # plt.title('Model rmse')
@@ -178,10 +185,52 @@ print(neigh.score(Xvalid,Yvalid))
 # #plt.savefig("Keras_NN_Accuracy.png")
 # plt.show() 
 # plt.clf()
-"""
-print("##################SVM")
-s=SVR(verbose=True)
-s.fit(Xtrain,Ytrain)
-print(s.score(Xvalid,Yvalid))
 
-"""
+#SVM too slow, not accurate
+#print("-----------------SVM------------------")
+#s=SVR(verbose=True)
+#s.fit(Xtrain,Ytrain)
+#print('Score:',s.score(Xvalid,Yvalid))
+
+
+print("-----------------DecisionTree-----------------")
+trees = []
+for md in [2, 5, 7, 8]:
+    tree = DecisionTreeRegressor(max_depth=md,criterion='mse').fit(Xtrain, Ytrain)
+    valiTree=cross_val_score(tree,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
+    test_score = tree.score(Xvalid, Yvalid)
+    trees.append([md, valiTree.mean(), test_score])
+    
+trees = pd.DataFrame(trees, columns = ['max_depth', 'cross_val_score', 'test_score'])
+
+plt.scatter(trees['max_depth'], trees['cross_val_score'])
+plt.scatter(trees['max_depth'], trees['test_score'])
+plt.title('DecisionTreeRegressor')
+plt.ylabel('max_depth')       
+plt.xlabel('Score')
+plt.legend(['Cross_val', 'Test'], loc='upper left')
+plt.show()
+plt.clf()
+
+
+
+print("---------------------RandomForest---------------------")
+forests = []
+for md in [2, 5, 7, 8]:
+    forest = RandomForestRegressor(max_depth=md,criterion='mse').fit(Xtrain, Ytrain)
+    valiForest=cross_val_score(forest,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
+    test_score = tree.score(Xvalid, Yvalid)
+    forests.append([md, valiForest.mean(), test_score])
+
+forests = pd.DataFrame(trees, columns = ['max_depth', 'cross_val_score', 'test_score'])
+plt.scatter(forests['max_depth'], forests['cross_val_score'])
+plt.scatter(forests['max_depth'], forests['test_score'])
+plt.title('RandomForestRegressor')
+plt.ylabel('max_depth')       
+plt.xlabel('Score')
+plt.legend(['Cross_val', 'Test'], loc='upper left')
+plt.show()
+plt.clf()
+
+
+    
