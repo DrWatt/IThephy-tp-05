@@ -14,9 +14,10 @@ from keras.optimizers import Adam
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor, ExtraTreeRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
+from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVR
 import xgboost as xgb
@@ -29,9 +30,8 @@ np.random.seed(seed)
 
 def create_mlp(dim, regress=False):
         model = Sequential()
-        model.add(Dense(16,input_dim=dim,kernel_initializer='normal',activation="relu"))
-        model.add(Dense(16, activation="relu"))
-        model.add(Dense(16, activation="relu"))
+        model.add(Dense(7,input_dim=dim,kernel_initializer='normal',activation="relu"))
+        #model.add(Dense(16, activation="relu"))
         
 	# check to see if the regression node should be added
         if regress:
@@ -64,18 +64,6 @@ lambdam = 1115.683
 
 
 variables = ["V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","Angle","nTracks","V0_ORIVX_Z","V0_ORIVX_CHI2","Resolution"]
-
-
-# units = [""]
-# V0Units = ["", "", "", ""]
-# V0AdvUnits = ["MeV / c²", "", ""]
-# LambdaUnits = ["MeV"]
-# hIPUnits = ["", "", "", ""]
-# hplusPUnits = ["MeV / c", "MeV / c", "MeV / c", "MeV / c"]
-# hminusPUnits = ["MeV / c", "MeV / c", "MeV / c", "MeV / c"]
-# pseudorapUnits = ["", "", "", "", "", "", ""]
-# transverseUnits = ["MeV / c", "MeV / c", "MeV / c", "MeV / c","MeV / c","MeV / c"]
-# angleUnits = ["rad","rad"]
 
 # units.extend(V0Units)
 # units.extend(V0AdvUnits)
@@ -123,6 +111,9 @@ Xtrain,Xvalid,Ytrain,Yvalid=train_test_split(data[["V0_ENDVERTEX_Z","V0_ENDVERTE
 Xtrain = cs.fit_transform(Xtrain)
 Xvalid = cs.transform(Xvalid)
 
+kf = KFold(n_splits=10,shuffle=True,random_state=seed)
+#print(bst.get_params())
+
 
 print("------------------MLP----------------------------")
 model = create_mlp(Xtrain.shape[1], regress=True)
@@ -130,15 +121,12 @@ opt = Adam(lr=1e-3, decay=1e-3 / 200)
 model.compile(loss="mean_squared_error", optimizer=opt, metrics=['mae','accuracy'])
  # # train the model
 print("[INFO] training model...")
-model.fit(Xtrain, Ytrain, validation_data=(Xvalid, Yvalid),epochs=10, batch_size=20,verbose=True)
+model.fit(Xtrain, Ytrain, validation_data=(Xvalid, Yvalid),epochs=20, batch_size=20,verbose=True)
 test_score =model.evaluate(Xvalid, Yvalid, batch_size=20)
 print('Score:', test_score)
 #dtrain=xgb.DMatrix(Xtrain,label=Ytrain)
 #dvalid=xgb.DMatrix(Xvalid,label=Yvalid)
 print(model.metrics_names)
-
-kf = KFold(n_splits=10,shuffle=True,random_state=seed)
-#print(bst.get_params())
 
 
 print("------------------------Xgboost------------------------")
@@ -167,6 +155,8 @@ plt.legend(['Train', 'Test'], loc='upper left')
 plt.show()
 plt.clf()
 #print(trainbst.evals_result())
+Y=trainbst.predict(Xvalid)
+print("MSE:",mean_squared_error(Yvalid, Y, squared=False))
 
 
 print("--------------------KNeighbors-------------------------")
@@ -176,6 +166,8 @@ print(valiN.mean())
 neigh.fit(Xtrain,Ytrain)
 print(neigh.get_params())
 print('Score:',neigh.score(Xvalid,Yvalid))
+Y=neigh.predict(Xvalid)
+print("MSE:",mean_squared_error(Yvalid, Y, squared=False))
 # plt.plot(list(evres['validation_0']['rmse']))
 # plt.plot(list(evres['validation_1']['rmse']))
 # plt.title('Model rmse')
@@ -188,7 +180,7 @@ print('Score:',neigh.score(Xvalid,Yvalid))
 
 #SVM too slow, not accurate
 #print("-----------------SVM------------------")
-#s=SVR(verbose=True)
+#s=SVR(kernel='poly',verbose=True)
 #s.fit(Xtrain,Ytrain)
 #print('Score:',s.score(Xvalid,Yvalid))
 
@@ -200,17 +192,40 @@ for md in [2, 5, 7, 8]:
     valiTree=cross_val_score(tree,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
     test_score = tree.score(Xvalid, Yvalid)
     trees.append([md, valiTree.mean(), test_score])
+    Y=tree.predict(Xvalid)
+    print(test_score)
+    print("MSE:",mean_squared_error(Yvalid, Y, squared=False))
     
 trees = pd.DataFrame(trees, columns = ['max_depth', 'cross_val_score', 'test_score'])
 
 plt.scatter(trees['max_depth'], trees['cross_val_score'])
 plt.scatter(trees['max_depth'], trees['test_score'])
 plt.title('DecisionTreeRegressor')
-plt.ylabel('max_depth')       
-plt.xlabel('Score')
+plt.ylabel('Score')       
+plt.xlabel('Max_depth')
 plt.legend(['Cross_val', 'Test'], loc='upper left')
 plt.show()
 plt.clf()
+
+
+print("----------------------GBR----------------------------")
+gbr=GradientBoostingRegressor(learning_rate=0.1,n_estimators=150,criterion='mse',verbose=0,validation_fraction=0.2)
+gbr.fit(Xtrain,Ytrain)
+valigbr=cross_val_score(gbr,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
+test_score = gbr.score(Xvalid, Yvalid)
+Y=gbr.predict(Xvalid)
+print(test_score)
+print("MSE:",mean_squared_error(Yvalid, Y, squared=False))
+
+print("----------------------Ada----------------------------")
+t= DecisionTreeRegressor(max_depth=7,criterion='mse')
+ada=AdaBoostRegressor(base_estimator=t,n_estimators=150,random_state=seed)
+ada.fit(Xtrain,Ytrain)
+valiada=cross_val_score(ada,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
+test_score = ada.score(Xvalid, Yvalid)
+Y=ada.predict(Xvalid)
+print(test_score)
+print("MSE:",mean_squared_error(Yvalid, Y, squared=False))
 
 
 
@@ -221,6 +236,10 @@ for md in [2, 5, 7, 8]:
     valiForest=cross_val_score(forest,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
     test_score = tree.score(Xvalid, Yvalid)
     forests.append([md, valiForest.mean(), test_score])
+    Y=forest.predict(Xvalid)
+    print(test_score)
+    print("MSE:",mean_squared_error(Yvalid, Y, squared=False))
+
 
 forests = pd.DataFrame(trees, columns = ['max_depth', 'cross_val_score', 'test_score'])
 plt.scatter(forests['max_depth'], forests['cross_val_score'])
