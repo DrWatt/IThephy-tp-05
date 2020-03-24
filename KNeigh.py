@@ -18,6 +18,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor, ExtraTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVR
@@ -287,4 +288,12 @@ def RandomForest():
     plt.clf()
 
 
-    
+def LinRegression():
+    print("------------------LinearRegression----------------------------")
+    lin_reg = LinearRegression()
+    lin_reg.fit(Xtrain,Ytrain)
+    print("Parameters: Bias = ",lin_reg.intercept_, "\nCoef. = ", lin_reg.coef_)
+    predic =  lin_reg.predict(Xvalid)
+    print("Prediction for validation set: ", predic)
+    MSE_LinearRegression = 1/len(Yvalid) * np.sum((predic - Yvalid)**2)
+    print("Mean Square Error for Linear Regression: \nMSE = ", MSE_LinearRegression)
