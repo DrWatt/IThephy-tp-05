@@ -73,10 +73,12 @@ except Exception:
     data = data_upload("https://www.dropbox.com/s/3jf2qx9jf729y7y/datatot.csv?dl=1")
 
 if down == 1:
-    data = data.drop(data[data['hminus_TRACK_Type'] == 3 ].index)
     #Dropping all tracks with Type 3 (long)
+    data = data.drop(data[data['hminus_TRACK_Type'] == 3 ].index)
+    variables = ["V0_ENDVERTEX_CHI2","V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","hplus_PY","hminus_P","Angle","nTracks","V0_ORIVX_X","V0_ORIVX_Z","V0_ORIVX_CHI2","hplus_IP_OWNPV"]
 else:
     data = data.drop(data[data['hminus_TRACK_Type'] == 5 ].index)
+    variables = ["V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","hplus_PY","hminus_P","hminus_PZ","Angle","nTracks","V0_ORIVX_X","V0_ORIVX_Y","V0_ORIVX_CHI2"]
 
 
 
@@ -87,7 +89,6 @@ protonm = 938.272081
 lambdam = 1115.683
 
 
-variables = ["V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","Angle","nTracks","V0_ORIVX_Z","V0_ORIVX_CHI2","Resolution"]
 
 cs = MinMaxScaler()
 
@@ -96,17 +97,17 @@ cs = MinMaxScaler()
 # data = data.div([norm[0],norm[1],norm[2],norm[3],norm[4],norm[5],1])
 
 data = data.dropna()
-datamlp= data[["V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","Angle","nTracks","V0_ORIVX_Z","V0_ORIVX_CHI2","V0_ORIVX_Y"]]
+datamlp= data[variables]
 labelmlp = data["Resolution"]
 
-Xtrain,Xvalid,Ytrain,Yvalid=train_test_split(data[["V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","Angle","nTracks","V0_ORIVX_Z","V0_ORIVX_CHI2","V0_ORIVX_Y"]],data["Resolution"],test_size=0.3)
+Xtrain,Xvalid,Ytrain,Yvalid=train_test_split(data[variables],data["Resolution"],test_size=0.3)
 datamlp = cs.fit_transform(datamlp)
 Xtrain = cs.transform(Xtrain)
 Xvalid = cs.transform(Xvalid)
 
 kf = KFold(n_splits=10,shuffle=True,random_state=seed)
 #print(bst.get_params())
-def create_mlp(dim=8, regress=True):
+def create_mlp(dim=12, regress=True):
         model = Sequential()
         model.add(Dense(100,input_dim=dim,kernel_initializer='random_normal',activation="relu"))
         #model.add(Dropout(rate=0.1))
@@ -165,7 +166,7 @@ def mlp():
 
 def xgbmodel():
     print("------------------------Xgboost------------------------")
-    bst = XGBRegressor(learning_rate=0.1,max_depth=4,n_jobs=-1,n_estimators=150,num_parallel_tree=10,objective='reg:squarederror',subsample=0.8)
+    bst = XGBRegressor(learning_rate=0.1,max_depth=4,n_jobs=-1,n_estimators=150,num_parallel_tree=10,objective='reg:squarederror',subsample=0.7)
     trainbst = bst.fit(Xtrain,Ytrain,eval_set=[(Xtrain, Ytrain), (Xvalid, Yvalid)],eval_metric=['rmse','mae'],verbose=True)
     vali = cross_val_score(trainbst,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
     evres=bst.evals_result() # See MAE metric
@@ -244,7 +245,7 @@ def dt():
     
 def gbr():    
     print("----------------------GBR----------------------------")
-    gbr=GradientBoostingRegressor(learning_rate=0.1,n_estimators=150,criterion='mse',verbose=0,validation_fraction=0.2)
+    gbr=GradientBoostingRegressor(learning_rate=0.1,n_estimators=150,criterion='mse',verbose=1,validation_fraction=0.3)
     gbr.fit(Xtrain,Ytrain)
     valigbr=cross_val_score(gbr,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
     test_score = gbr.score(Xvalid, Yvalid)
@@ -297,3 +298,6 @@ def LinRegression():
     print("Prediction for validation set: ", predic)
     MSE_LinearRegression = 1/len(Yvalid) * np.sum((predic - Yvalid)**2)
     print("Mean Square Error for Linear Regression: \nMSE = ", MSE_LinearRegression)
+
+    
+xgbmodel()
