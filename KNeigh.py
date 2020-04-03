@@ -17,18 +17,19 @@ import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor, ExtraTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor
-from sklearn.model_selection import train_test_split, KFold, cross_val_score
+from sklearn.model_selection import train_test_split, KFold, cross_val_score,GridSearchCV
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler,MaxAbsScaler
 from sklearn.svm import SVR
 import xgboost as xgb
 from xgboost import XGBRegressor
 import matplotlib.pyplot as plt
 import requests
+import time
 
 
-seed = 12345
+seed = 2020
 np.random.seed(seed)
 
 
@@ -78,9 +79,9 @@ if down == 1:
     variables = ["V0_ENDVERTEX_CHI2","V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","hplus_PY","hminus_P","Angle","nTracks","V0_ORIVX_X","V0_ORIVX_Z","V0_ORIVX_CHI2","hplus_IP_OWNPV"]
 else:
     data = data.drop(data[data['hminus_TRACK_Type'] == 5 ].index)
-    variables = ["V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","hplus_PY","hminus_P","hminus_PZ","Angle","nTracks","V0_ORIVX_X","V0_ORIVX_Y","V0_ORIVX_CHI2"]
+    variables = ["V0_ENDVERTEX_Z","hplus_P","hplus_PY","hminus_P","hminus_PZ","Angle","nTracks","V0_ORIVX_X","V0_ORIVX_Y","V0_ORIVX_CHI2"]
 
-
+#"V0_ENDVERTEX_Y"
 
 #Declaring real masses from pdg
 # data= data.drop(["Track_type"],axis=1)
@@ -90,7 +91,7 @@ lambdam = 1115.683
 
 
 
-cs = MinMaxScaler()
+cs = MaxAbsScaler()
 
 # norm = data.max() - data.min()
 # data = data - [data.min()[0],data.min()[1],data.min()[2],data.min()[3],data.min()[4],data.min()[5],0]
@@ -166,9 +167,10 @@ def mlp():
 
 def xgbmodel():
     print("------------------------Xgboost------------------------")
-    bst = XGBRegressor(learning_rate=0.1,max_depth=4,n_jobs=-1,n_estimators=150,num_parallel_tree=10,objective='reg:squarederror',subsample=0.7)
+    time0 = time.time()
+    bst = XGBRegressor(learning_rate=0.01,max_depth=4,n_jobs=-1,n_estimators=1000,num_parallel_tree=10,objective='reg:squarederror',subsample=0.8,early_stopping_rounds=10)
     trainbst = bst.fit(Xtrain,Ytrain,eval_set=[(Xtrain, Ytrain), (Xvalid, Yvalid)],eval_metric=['rmse','mae'],verbose=True)
-    vali = cross_val_score(trainbst,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
+    #vali = cross_val_score(trainbst,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
     evres=bst.evals_result() # See MAE metric
     
     #print(vali.mean())
@@ -193,6 +195,9 @@ def xgbmodel():
     #print(trainbst.evals_result())
     Y=trainbst.predict(Xvalid)
     print("MSE:",mean_squared_error(Yvalid, Y, squared=False))
+    
+    print("Executed in %s s" % (time.time() - time0))
+    return mean_squared_error(Yvalid, Y, squared=False)
 
 def KNN():
     print("--------------------KNeighbors-------------------------")
@@ -299,5 +304,27 @@ def LinRegression():
     MSE_LinearRegression = 1/len(Yvalid) * np.sum((predic - Yvalid)**2)
     print("Mean Square Error for Linear Regression: \nMSE = ", MSE_LinearRegression)
 
+
+def hyperparam_search():
     
-xgbmodel()
+    param_grid={'learning_rate':[0.001,0.05,0.1,0.2],'max_depth':[4,10,2],'n_estimators':[100,500,1000],'subsample':[0.7,0.8,1]}
+    bst = XGBRegressor(n_jobs=-1,num_parallel_tree=10,objective='reg:squarederror',early_stopping_rounds=10)
+    search = GridSearchCV(bst, param_grid,n_jobs=-1,verbose=51)
+    search.fit(Xtrain,Ytrain)
+    print(search.best_params_)
+    return search.cv_results_
+#xgbmodel()
+#a = hyperparam_search()
+   # {'learning_rate': 0.2,
+   # 'max_depth': 4,
+   # 'n_estimators': 1000,
+   # 'subsample': 0.7},
+
+# with open("results.txt","w") as o:
+#     for i in range(1,2):
+#         np.random.seed(i)
+#         print("Seed: ",i)
+#         a = xgbmodel()
+#         o.write(str(a))
+#         o.write('\n')
+    
