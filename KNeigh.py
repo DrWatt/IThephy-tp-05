@@ -194,10 +194,10 @@ def xgbmodel():
     # plt.clf()
     # #print(trainbst.evals_result())
     Y=trainbst.predict(Xvalid)
-    print("MSE:",mean_squared_error(Yvalid, Y))
+    print("MSE:",mean_squared_error(Yvalid, Y, squared=False))
     
     print("Executed in %s s" % (time.time() - time0))
-    return mean_absolute_error(Yvalid, Y, squared=False)
+    return mean_absolute_error(Yvalid, Y)
 
 def KNN():
     print("--------------------KNeighbors-------------------------")
