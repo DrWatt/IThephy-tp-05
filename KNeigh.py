@@ -19,7 +19,7 @@ from sklearn.tree import DecisionTreeRegressor, ExtraTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor
 from sklearn.model_selection import train_test_split, KFold, cross_val_score,GridSearchCV
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error,mean_absolute_error
 from sklearn.preprocessing import MinMaxScaler,MaxAbsScaler
 from sklearn.svm import SVR
 import xgboost as xgb
@@ -197,7 +197,7 @@ def xgbmodel():
     print("MSE:",mean_squared_error(Yvalid, Y, squared=False))
     
     print("Executed in %s s" % (time.time() - time0))
-    return mean_squared_error(Yvalid, Y, squared=False)
+    return mean_absolute_error(Yvalid, Y, squared=False)
 
 def KNN():
     print("--------------------KNeighbors-------------------------")
@@ -320,11 +320,13 @@ def hyperparam_search():
    # 'n_estimators': 1000,
    # 'subsample': 0.7},
 
-# with open("results.txt","w") as o:
-#     for i in range(1,2):
-#         np.random.seed(i)
-#         print("Seed: ",i)
-#         a = xgbmodel()
-#         o.write(str(a))
-#         o.write('\n')
+with open("results.txt","w") as o:
+    for i in range(1000,1100):
+        np.random.seed(i)
+        print("Seed: ",i)
+        a = xgbmodel()
+        o.write(str(seed))
+        o.write('\t')
+        o.write(str(a))
+        o.write('\n')
     
