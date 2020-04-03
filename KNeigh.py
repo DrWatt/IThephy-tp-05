@@ -175,26 +175,26 @@ def xgbmodel():
     
     #print(vali.mean())
     
-    plt.plot(list(evres['validation_0']['rmse']))
-    plt.plot(list(evres['validation_1']['rmse']))
-    plt.title('Model rmse')
-    plt.ylabel('rmse')       
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Test'], loc='upper left')
-    plt.show() 
-    plt.clf()
+    # plt.plot(list(evres['validation_0']['rmse']))
+    # plt.plot(list(evres['validation_1']['rmse']))
+    # plt.title('Model rmse')
+    # plt.ylabel('rmse')       
+    # plt.xlabel('Epoch')
+    # plt.legend(['Train', 'Test'], loc='upper left')
+    # plt.show() 
+    # plt.clf()
     
-    plt.plot(list(evres['validation_0']['mae']))
-    plt.plot(list(evres['validation_1']['mae']))
-    plt.title('Model mae')
-    plt.ylabel('mae')       
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Test'], loc='upper left')
-    plt.show()
-    plt.clf()
-    #print(trainbst.evals_result())
+    # plt.plot(list(evres['validation_0']['mae']))
+    # plt.plot(list(evres['validation_1']['mae']))
+    # plt.title('Model mae')
+    # plt.ylabel('mae')       
+    # plt.xlabel('Epoch')
+    # plt.legend(['Train', 'Test'], loc='upper left')
+    # plt.show()
+    # plt.clf()
+    # #print(trainbst.evals_result())
     Y=trainbst.predict(Xvalid)
-    print("MSE:",mean_squared_error(Yvalid, Y, squared=False))
+    print("MSE:",mean_squared_error(Yvalid, Y))
     
     print("Executed in %s s" % (time.time() - time0))
     return mean_absolute_error(Yvalid, Y, squared=False)
@@ -321,7 +321,7 @@ def hyperparam_search():
    # 'subsample': 0.7},
 
 with open("results.txt","w") as o:
-    for i in range(1000,1100):
+    for i in range(4001,5000):
         np.random.seed(i)
         print("Seed: ",i)
         a = xgbmodel()
