@@ -27,9 +27,10 @@ from xgboost import XGBRegressor
 import matplotlib.pyplot as plt
 import requests
 import time
+import argparse
 
 
-seed = 2020
+seed = 12345
 np.random.seed(seed)
 
 
@@ -79,9 +80,9 @@ if down == 1:
     variables = ["V0_ENDVERTEX_CHI2","V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","hplus_PY","hminus_P","Angle","nTracks","V0_ORIVX_X","V0_ORIVX_Z","V0_ORIVX_CHI2","hplus_IP_OWNPV"]
 else:
     data = data.drop(data[data['hminus_TRACK_Type'] == 5 ].index)
-    variables = ["V0_ENDVERTEX_Z","hplus_P","hplus_PY","hminus_P","hminus_PZ","Angle","nTracks","V0_ORIVX_X","V0_ORIVX_Y","V0_ORIVX_CHI2"]
+    variables = ["V0_ENDVERTEX_Z","hplus_P","hplus_PY","hminus_P","hminus_PZ","nTracks","Angle","V0_ORIVX_X","V0_ORIVX_CHI2"]
 
-#"V0_ENDVERTEX_Y"
+#"V0_ENDVERTEX_Y""nTracks","V0_ORIVX_Y"
 
 #Declaring real masses from pdg
 # data= data.drop(["Track_type"],axis=1)
@@ -101,7 +102,7 @@ data = data.dropna()
 datamlp= data[variables]
 labelmlp = data["Resolution"]
 
-Xtrain,Xvalid,Ytrain,Yvalid=train_test_split(data[variables],data["Resolution"],test_size=0.3)
+Xtrain,Xvalid,Ytrain,Yvalid=train_test_split(data[variables],data["Resolution"].abs(),test_size=0.3)
 datamlp = cs.fit_transform(datamlp)
 Xtrain = cs.transform(Xtrain)
 Xvalid = cs.transform(Xvalid)
@@ -119,8 +120,8 @@ def create_mlp(dim=12, regress=True):
         opt = Adam(lr=0.001)
     
         
-     # # train the model
-	# check to see if the regression node should be added
+      # # train the model
+ 	# check to see if the regression node should be added
         if regress:
                 model.add(Dense(1, activation="linear"))
                 
@@ -168,36 +169,36 @@ def mlp():
 def xgbmodel():
     print("------------------------Xgboost------------------------")
     time0 = time.time()
-    bst = XGBRegressor(learning_rate=0.01,max_depth=4,n_jobs=-1,n_estimators=1000,num_parallel_tree=10,objective='reg:squarederror',subsample=0.8,early_stopping_rounds=10)
+    bst = XGBRegressor(learning_rate=0.01,max_depth=4,n_jobs=-1,n_estimators=1000,num_parallel_tree=10,objective='reg:squarederror',subsample=0.8,early_stopping_rounds=10,random_state=seed,base_score=0)
     trainbst = bst.fit(Xtrain,Ytrain,eval_set=[(Xtrain, Ytrain), (Xvalid, Yvalid)],eval_metric=['rmse','mae'],verbose=True)
     #vali = cross_val_score(trainbst,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
     evres=bst.evals_result() # See MAE metric
     
     #print(vali.mean())
     
-    # plt.plot(list(evres['validation_0']['rmse']))
-    # plt.plot(list(evres['validation_1']['rmse']))
-    # plt.title('Model rmse')
-    # plt.ylabel('rmse')       
-    # plt.xlabel('Epoch')
-    # plt.legend(['Train', 'Test'], loc='upper left')
-    # plt.show() 
-    # plt.clf()
+    plt.plot(list(evres['validation_0']['rmse']))
+    plt.plot(list(evres['validation_1']['rmse']))
+    plt.title('Model rmse')
+    plt.ylabel('rmse')       
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show() 
+    plt.clf()
     
-    # plt.plot(list(evres['validation_0']['mae']))
-    # plt.plot(list(evres['validation_1']['mae']))
-    # plt.title('Model mae')
-    # plt.ylabel('mae')       
-    # plt.xlabel('Epoch')
-    # plt.legend(['Train', 'Test'], loc='upper left')
-    # plt.show()
-    # plt.clf()
-    # #print(trainbst.evals_result())
+    plt.plot(list(evres['validation_0']['mae']))
+    plt.plot(list(evres['validation_1']['mae']))
+    plt.title('Model mae')
+    plt.ylabel('mae')       
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
+    plt.clf()
+    #print(trainbst.evals_result())
     Y=trainbst.predict(Xvalid)
     print("MSE:",mean_squared_error(Yvalid, Y, squared=False))
     
     print("Executed in %s s" % (time.time() - time0))
-    return mean_absolute_error(Yvalid, Y)
+    return [Yvalid,Y]
 
 def KNN():
     print("--------------------KNeighbors-------------------------")
@@ -219,11 +220,11 @@ def KNN():
     # plt.show() 
     # plt.clf()
 
-#SVM too slow, not accurate
-#print("-----------------SVM------------------")
-#s=SVR(kernel='poly',verbose=True)
-#s.fit(Xtrain,Ytrain)
-#print('Score:',s.score(Xvalid,Yvalid))
+# SVM too slow, not accurate
+# print("-----------------SVM------------------")
+# s=SVR(kernel='poly',verbose=True)
+# s.fit(Xtrain,Ytrain)
+# print('Score:',s.score(Xvalid,Yvalid))
 
 def dt():
     print("-----------------DecisionTree-----------------")
@@ -315,18 +316,24 @@ def hyperparam_search():
     return search.cv_results_
 #xgbmodel()
 #a = hyperparam_search()
-   # {'learning_rate': 0.2,
-   # 'max_depth': 4,
-   # 'n_estimators': 1000,
-   # 'subsample': 0.7},
+    # {'learning_rate': 0.2,
+    # 'max_depth': 4,
+    # 'n_estimators': 1000,
+    # 'subsample': 0.7},
 
-with open("results.txt","w") as o:
-    for i in range(4001,5000):
-        np.random.seed(i)
-        print("Seed: ",i)
-        a = xgbmodel()
-        o.write(str(seed))
-        o.write('\t')
-        o.write(str(a))
-        o.write('\n')
+# for seed in range(12345,12350):
+#     with open("results.txt","a+") as o:
+    
+#         np.random.seed(seed)
+#         print("Seed: ",seed)
+#         a = xgbmodel()
+#         o.write(str(seed))
+#         o.write('\t')
+#         o.write(str(a))
+#         o.write('\n')
+# if __name__ == '__main__':   
+#     parser=argparse.ArgumentParser()
+#     parser.add_argument('--seed', type=int)
+#     pars = parser.parse_args()
+#     run(pars)
     
