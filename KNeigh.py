@@ -112,12 +112,12 @@ kf = KFold(n_splits=10,shuffle=True,random_state=seed)
 def create_mlp(dim=12, regress=True):
         model = Sequential()
         model.add(Dense(100,input_dim=dim,kernel_initializer='random_normal',activation="relu"))
-        #model.add(Dropout(rate=0.1))
-        #model.add(Dense(5,activation="relu"))
+        model.add(Dropout(rate=0.1))
+        model.add(Dense(5,activation="relu"))
         #model.add(Dropout(rate=0.1))
 
         #model.add(Dense(16, activation="relu"))
-        opt = Adam(lr=0.001)
+        opt = Adam(lr=0.0005)
     
         
       # # train the model
@@ -136,11 +136,11 @@ def create_mlp(dim=12, regress=True):
 def mlp():
     print("------------------MLP----------------------------")
     #model = create_mlp(Xtrain.shape[1], regress=True)
-    estimator = KerasRegressor(build_fn=create_mlp, epochs=20, batch_size=10, verbose=2)
+    estimator = KerasRegressor(build_fn=create_mlp, epochs=200, batch_size=10, verbose=2)
     print("[INFO] training model...")
     #estimator.fit(dataset, encoded_labels, epochs=par[0], batch_size=par[1],verbose=2,validation_split=par[2])
 
-    history = estimator.fit(datamlp,labelmlp,epochs=20, batch_size=10,validation_split=0.2,verbose=2)
+    history = estimator.fit(datamlp,labelmlp,epochs=600, batch_size=10,validation_split=0.2,verbose=2)
     #test_score = model.evaluate(Xvalid, Yvalid, batch_size=20)
     #print('Score:', test_score)
     #dtrain=xgb.DMatrix(Xtrain,label=Ytrain)
