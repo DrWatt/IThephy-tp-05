@@ -30,7 +30,7 @@ import time
 import argparse
 
 
-seed = 12345
+seed = 629
 np.random.seed(seed)
 
 
@@ -169,7 +169,7 @@ def mlp():
 def xgbmodel():
     print("------------------------Xgboost------------------------")
     time0 = time.time()
-    bst = XGBRegressor(learning_rate=0.01,max_depth=4,n_jobs=-1,n_estimators=1000,num_parallel_tree=10,objective='reg:squarederror',subsample=0.8,early_stopping_rounds=10,random_state=seed,base_score=0)
+    bst = XGBRegressor(learning_rate=0.05,max_depth=5,n_jobs=-1,n_estimators=1000,num_parallel_tree=13,objective='reg:squarederror',subsample=0.7,early_stopping_rounds=10,random_state=seed,base_score=0)
     trainbst = bst.fit(Xtrain,Ytrain,eval_set=[(Xtrain, Ytrain), (Xvalid, Yvalid)],eval_metric=['rmse','mae'],verbose=True)
     #vali = cross_val_score(trainbst,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
     evres=bst.evals_result() # See MAE metric
@@ -308,13 +308,13 @@ def LinRegression():
 
 def hyperparam_search():
     
-    param_grid={'learning_rate':[0.001,0.05,0.1,0.2],'max_depth':[4,10,2],'n_estimators':[100,500,1000],'subsample':[0.7,0.8,1]}
-    bst = XGBRegressor(n_jobs=-1,num_parallel_tree=10,objective='reg:squarederror',early_stopping_rounds=10)
+    param_grid={'learning_rate':[0.001,0.05,0.1,0.2],'max_depth':[4,5,6],'n_estimators':[100,500,1000],'subsample':[0.7,0.8,0.9]}
+    bst = XGBRegressor(n_jobs=-1,num_parallel_tree=13,objective='reg:squarederror',early_stopping_rounds=10)
     search = GridSearchCV(bst, param_grid,n_jobs=-1,verbose=51)
     search.fit(Xtrain,Ytrain)
     print(search.best_params_)
     return search.cv_results_
-#xgbmodel()
+print(xgbmodel())
 #a = hyperparam_search()
     # {'learning_rate': 0.2,
     # 'max_depth': 4,
