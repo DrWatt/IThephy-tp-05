@@ -14,6 +14,10 @@
 #include <fstream>
 #include <TObjArray.h>
 #include <TObject.h>
+#include <cstdlib>
+#include <TMultiGraph.h>
+#include <algorithm>
+
 
 void tree::tocsv()
 {
@@ -42,7 +46,7 @@ void tree::tocsv()
 	vector<float> Angle;
 	vector<float> Resolution;
 	ofstream o;
-	o.open("datatree2.csv");
+	o.open("datatree_v3.csv");
 	//o << "V0_Endvertex_Z,V0_Endvertex_Y,V0_FDCHI2_ORIVX,V0_M,V0_FD_ORIVX,Lambda_E,hplus_IP_OWNPV,hplus_IPCHI2_OWNPV,hplus_P,hminus_P,Angle,Resolution,Track_type\n";
 	if (fChain == 0) return;
 
@@ -56,7 +60,7 @@ void tree::tocsv()
 		clog <<a->At(i)->GetName()<< endl;
 		o << a->At(i)->GetName() << ',';
 	}
-	o << "Lambda_E,hplus_P,hminus_P,Angle\n";
+	o << "Lambda_E,hplus_P,hminus_P,Angle,Resolution\n";
 
 
 
@@ -96,7 +100,7 @@ void tree::tocsv()
 	  Lambda_M.push_back(sqrt(Lambda_E.at(jentry)*Lambda_E.at(jentry)-(Lambda_PX.at(jentry)*Lambda_PX.at(jentry)+Lambda_PY.at(jentry)*Lambda_PY.at(jentry)+Lambda_PZ.at(jentry)*Lambda_PZ.at(jentry))));
 	  Lambda_M_TRUE.push_back(sqrt(Lambda_E_TRUE.at(jentry)*Lambda_E_TRUE.at(jentry)-(Lambda_PX_TRUE.at(jentry)*Lambda_PX_TRUE.at(jentry)+Lambda_PY_TRUE.at(jentry)*Lambda_PY_TRUE.at(jentry)+Lambda_PZ_TRUE.at(jentry)*Lambda_PZ_TRUE.at(jentry))));
 
-	  Resolution.push_back(Lambda_M_TRUE.at(jentry)-Lambda_M.at(jentry));
+	  Resolution.push_back(lambdam-V0_M);
 
 	
 	for (int i = 0; i < a->GetEntries(); ++i)
@@ -107,11 +111,107 @@ void tree::tocsv()
 	  o << hplus_P.at(jentry) << ',';
 	  o << hminus_P.at(jentry) << ',';
 	  o << Angle.at(jentry) << ',';
-	  //o << Resolution.at(jentry) << ',';
+	  o << Resolution.at(jentry) << ',';
 	  o << '\n';
 	}
 	o.close();
 }
+
+void tree::reso()
+{
+  float lambdam = 1115.683;
+  TH1F* h1= new TH1F("h1","h1",100,-10,10);
+  TH1F* h2= new TH1F("h2","h2",100,-0.5,10);
+  ifstream inp("../xgb_v3_newvar_nom.csv");
+  ifstream inp2("../xgb_v3_newvar_inf.csv");
+//  inp.seekg(0,inp.end);
+//  int leng = inp.tellg();
+//  inp.seekg(0,inp.beg);
+  inp.ignore(100,'\n');
+  inp2.ignore(100,'\n');
+  char* s = new char[100];
+  char* s2 = new char[100];
+  char* sI = new char[100];
+  char* s2I = new char[100];
+  float* f = new float[23979];
+  float* f2 = new float[23979];
+  int* fI = new int[23979];
+  int* f2I = new int[23979];
+  vector<int> vecind;
+  //float s;
+
+  for (int i = 0; i < 23979; ++i)
+  {
+    inp >> sI >> s;
+    f[i] = strtod(s,NULL);
+    fI[i] = stoi(sI,NULL);
+    vecind.push_back(fI[i]);
+    inp2 >> s2I >> s2;
+    f2[i] = strtod(s2,NULL);
+    f2I[i] = stoi(s2I,NULL);
+    h1->Fill(f[i]);    
+    h2->Fill(f2[i]);
+    //clog << distance(vecind.begin(),vecind.end()) <<endl;
+      
+  }
+  float* mass = new float[23979];
+  int l = 0;
+  if (fChain == 0) return;
+
+  Long64_t nentries = fChain->GetEntriesFast();
+
+  Long64_t nbytes = 0, nb = 0;
+
+
+    for (Long64_t jentry=0; jentry<nentries;jentry++) {
+      Long64_t ientry = LoadTree(jentry);
+      if (ientry < 0) break;
+      nb = fChain->GetEntry(jentry);   nbytes += nb;
+      // if (Cut(ientry) < 0) continue;
+      float t = jentry/1000.;
+      if (t == (int)t) clog <<'\r' << "Entry " << jentry;
+    
+      vector<int>::iterator it = find (vecind.begin(), vecind.end(), jentry);
+      
+      if (it != vecind.end() && *it != 0) 
+      {
+        //clog << *it << endl;
+        //clog << distance(vecind.begin(), it) << endl;
+        mass[distance(vecind.begin(), it)] = V0_ENDVERTEX_Z;
+        //clog << mass[l] << endl;
+        ++l;
+      }
+
+    }
+    TMultiGraph* mg = new TMultiGraph();
+    TGraphErrors* g = new TGraphErrors(23979,mass,f);
+    TGraphErrors* g2 = new TGraphErrors(23979,mass,f2);
+    g2->SetMarkerColor(kRed);
+    g->SetMarkerColor(kBlue);
+    g->SetMarkerStyle(20);
+    g->SetMarkerSize(0.2);
+    g2->SetMarkerStyle(20);
+    g2->SetMarkerSize(0.2);
+    mg->Add(g,"ap");
+    mg->Add(g2,"p");
+
+    TCanvas* c = new TCanvas("c","c");
+    h2->SetLineColor(kRed);
+    inp.close();
+    c->cd();
+    h1->Draw();
+    h2->Draw("SAME");
+    c->Draw();
+
+    TCanvas* c1 = new TCanvas("c1","c1");
+    c1->cd();
+    mg->Draw();
+    c1->Draw();
+
+
+}
+
+
 
 
 #define PIONMASS 139.5706 //MeV
