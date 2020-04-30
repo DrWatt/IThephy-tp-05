@@ -30,7 +30,8 @@ import time
 import argparse
 
 
-seed = 629
+
+seed = 586
 np.random.seed(seed)
 
 
@@ -70,20 +71,20 @@ def data_upload(datapath):
 
 #### https://drive.google.com/open?id=1pZoeB-J7xMqlkRBNXYEnkug1PZKUmc62  LINK FOR THE DATASET
 try:
-    data = data_upload("datatot.csv")
+    data = data_upload("datatree_v3.csv")
 except Exception:
-    data = data_upload("https://www.dropbox.com/s/3jf2qx9jf729y7y/datatot.csv?dl=1")
+    data = data_upload("https://www.dropbox.com/s/vr4ppf3q4h19l14/datatree_v3.csv?dl=1")
 
 if down == 1:
     #Dropping all tracks with Type 3 (long)
     data = data.drop(data[data['hminus_TRACK_Type'] == 3 ].index)
-    variables = ["V0_ENDVERTEX_CHI2","V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","hplus_PY","hminus_P","Angle","nTracks","V0_ORIVX_X","V0_ORIVX_Z","V0_ORIVX_CHI2","hplus_IP_OWNPV"]
+    variables = ["V0_ENDVERTEX_CHI2","V0_ENDVERTEX_Z","hplus_P","hplus_PY","hminus_P","hminus_PZ","Angle","V0_ORIVX_X","hminus_TRACK_CHI2NDOF","hplus_TRACK_CHI2NDOF","hminus_TRACK_GhostProb","hplus_TRACK_GhostProb","nDownstreamTracks"]
 else:
     data = data.drop(data[data['hminus_TRACK_Type'] == 5 ].index)
-    variables = ["V0_ENDVERTEX_Z","hplus_P","hplus_PY","hminus_P","hminus_PZ","nTracks","Angle","V0_ORIVX_X","V0_ORIVX_CHI2"]
+    variables = ["V0_ENDVERTEX_CHI2","V0_ENDVERTEX_Z","hplus_P","hplus_PY","hminus_P","hminus_PZ","Angle","V0_ORIVX_X","hminus_TRACK_CHI2NDOF","hplus_TRACK_CHI2NDOF","hminus_TRACK_GhostProb","hplus_TRACK_GhostProb","nLongTracks"]
 
-#"V0_ENDVERTEX_Y""nTracks","V0_ORIVX_Y"
-
+#"V0_ENDVERTEX_Y""nTracks","V0_ORIVX_Y","V0_ORIVX_CHI2"
+#  down==1 variables: "V0_ENDVERTEX_CHI2","V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","hplus_PY","hminus_P","Angle","nTracks","V0_ORIVX_X","V0_ORIVX_Z","V0_ORIVX_CHI2","hplus_IP_OWNPV"
 #Declaring real masses from pdg
 # data= data.drop(["Track_type"],axis=1)
 pionm = 139.57061
@@ -99,8 +100,9 @@ cs = MaxAbsScaler()
 # data = data.div([norm[0],norm[1],norm[2],norm[3],norm[4],norm[5],1])
 
 data = data.dropna()
+data = data.drop(data[data.Resolution.abs() > 10].index)
 datamlp= data[variables]
-labelmlp = data["Resolution"]
+labelmlp = data["Resolution"].abs()
 
 Xtrain,Xvalid,Ytrain,Yvalid=train_test_split(data[variables],data["Resolution"].abs(),test_size=0.3)
 datamlp = cs.fit_transform(datamlp)
@@ -109,15 +111,15 @@ Xvalid = cs.transform(Xvalid)
 
 kf = KFold(n_splits=10,shuffle=True,random_state=seed)
 #print(bst.get_params())
-def create_mlp(dim=12, regress=True):
+def create_mlp(dim=9, regress=True):
         model = Sequential()
-        model.add(Dense(100,input_dim=dim,kernel_initializer='random_normal',activation="relu"))
+        model.add(Dense(20,input_dim=dim,kernel_initializer='random_normal',activation="relu"))
         model.add(Dropout(rate=0.1))
         model.add(Dense(5,activation="relu"))
         #model.add(Dropout(rate=0.1))
 
         #model.add(Dense(16, activation="relu"))
-        opt = Adam(lr=0.0005)
+        opt = Adam(lr=0.001)
     
         
       # # train the model
@@ -126,7 +128,7 @@ def create_mlp(dim=12, regress=True):
                 model.add(Dense(1, activation="linear"))
                 
                 
-        model.compile(loss="mean_squared_error", optimizer=opt, metrics=['accuracy','mae'])
+        model.compile(loss="mean_squared_error", optimizer=opt, metrics=['mae'])
         # return our model
         return model
  
@@ -140,7 +142,7 @@ def mlp():
     print("[INFO] training model...")
     #estimator.fit(dataset, encoded_labels, epochs=par[0], batch_size=par[1],verbose=2,validation_split=par[2])
 
-    history = estimator.fit(datamlp,labelmlp,epochs=600, batch_size=10,validation_split=0.2,verbose=2)
+    history = estimator.fit(datamlp,labelmlp,epochs=300, batch_size=100,validation_split=0.2,verbose=2)
     #test_score = model.evaluate(Xvalid, Yvalid, batch_size=20)
     #print('Score:', test_score)
     #dtrain=xgb.DMatrix(Xtrain,label=Ytrain)
@@ -148,13 +150,13 @@ def mlp():
     #print(model.metrics_names)
     
     #'mae','accuracy'
-    plt.plot(history.history['acc'])
-    plt.plot(history.history['val_acc'])
-    plt.title('Model accuracy')
-    plt.ylabel('Accuracy')      
+    plt.plot(history.history['mae'])
+    plt.plot(history.history['val_mae'])
+    plt.title('Model MAE')
+    plt.ylabel('MAE')      
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
-    plt.show()
+    plt.savefig("Keras_MAE.png")
     plt.clf()
     
     plt.plot(history.history['loss'])
@@ -163,13 +165,13 @@ def mlp():
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
-    plt.show()
+    plt.savefig("Keras_Loss_RMSE.png")
     plt.clf()
 
 def xgbmodel():
     print("------------------------Xgboost------------------------")
     time0 = time.time()
-    bst = XGBRegressor(learning_rate=0.05,max_depth=5,n_jobs=-1,n_estimators=1000,num_parallel_tree=13,objective='reg:squarederror',subsample=0.7,early_stopping_rounds=10,random_state=seed,base_score=0)
+    bst = XGBRegressor(learning_rate=0.005,max_depth=7,n_jobs=-1,n_estimators=2000,num_parallel_tree=13,objective='reg:squarederror',subsample=0.7,early_stopping_rounds=10,random_state=seed,base_score=0)
     trainbst = bst.fit(Xtrain,Ytrain,eval_set=[(Xtrain, Ytrain), (Xvalid, Yvalid)],eval_metric=['rmse','mae'],verbose=True)
     #vali = cross_val_score(trainbst,Xvalid,Yvalid,cv=kf,verbose=1,n_jobs=-1)
     evres=bst.evals_result() # See MAE metric
@@ -182,7 +184,7 @@ def xgbmodel():
     plt.ylabel('rmse')       
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
-    plt.show() 
+    plt.savefig("XGBoost_RMSE_v3_newvar_2.png")
     plt.clf()
     
     plt.plot(list(evres['validation_0']['mae']))
@@ -191,13 +193,17 @@ def xgbmodel():
     plt.ylabel('mae')       
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
-    plt.show()
+    plt.savefig("XGBoost_MAE_v3_newvar_2.png")
     plt.clf()
     #print(trainbst.evals_result())
     Y=trainbst.predict(Xvalid)
     print("MSE:",mean_squared_error(Yvalid, Y, squared=False))
     
     print("Executed in %s s" % (time.time() - time0))
+    out = pd.DataFrame(Yvalid)
+    out2 = pd.DataFrame(Y)
+    out.to_csv("xgb_v3_newvar_nom.csv",sep="\t")
+    out2.to_csv("xgb_v3_newvar_inf.csv",sep="\t")
     return [Yvalid,Y]
 
 def KNN():
@@ -314,7 +320,7 @@ def hyperparam_search():
     search.fit(Xtrain,Ytrain)
     print(search.best_params_)
     return search.cv_results_
-print(xgbmodel())
+#print(xgbmodel())
 #a = hyperparam_search()
     # {'learning_rate': 0.2,
     # 'max_depth': 4,
