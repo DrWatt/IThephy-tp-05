@@ -30,7 +30,6 @@ import time
 import argparse
 
 
-
 seed = 586
 np.random.seed(seed)
 
@@ -78,10 +77,10 @@ except Exception:
 if down == 1:
     #Dropping all tracks with Type 3 (long)
     data = data.drop(data[data['hminus_TRACK_Type'] == 3 ].index)
-    variables = ["V0_ENDVERTEX_CHI2","V0_ENDVERTEX_Z","hplus_P","hplus_PY","hminus_P","hminus_PZ","Angle","V0_ORIVX_X","hminus_TRACK_CHI2NDOF","hplus_TRACK_CHI2NDOF","hminus_TRACK_GhostProb","hplus_TRACK_GhostProb","nDownstreamTracks"]
+    variables = ["V0_ENDVERTEX_CHI2","V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","hplus_PT","hminus_P","Angle","nDownstreamTracks","V0_ORIVX_X","V0_ORIVX_Z","V0_ORIVX_CHI2","hplus_IP_OWNPV","hplus_TRACK_GhostProb","hminus_TRACK_CHI2NDOF"]
 else:
     data = data.drop(data[data['hminus_TRACK_Type'] == 5 ].index)
-    variables = ["V0_ENDVERTEX_CHI2","V0_ENDVERTEX_Z","hplus_P","hplus_PY","hminus_P","hminus_PZ","Angle","V0_ORIVX_X","hminus_TRACK_CHI2NDOF","hplus_TRACK_CHI2NDOF","hminus_TRACK_GhostProb","hplus_TRACK_GhostProb","nLongTracks"]
+    variables =  ["V0_ENDVERTEX_Z","hplus_P","hplus_PT","hminus_PT","hminus_PZ","Angle","nLongTracks","V0_ENDVERTEX_CHI2","hplus_TRACK_GhostProb","hminus_TRACK_CHI2NDOF"]
 
 #"V0_ENDVERTEX_Y""nTracks","V0_ORIVX_Y","V0_ORIVX_CHI2"
 #  down==1 variables: "V0_ENDVERTEX_CHI2","V0_ENDVERTEX_Z","V0_ENDVERTEX_Y","hplus_P","hplus_PY","hminus_P","Angle","nTracks","V0_ORIVX_X","V0_ORIVX_Z","V0_ORIVX_CHI2","hplus_IP_OWNPV"
@@ -320,7 +319,7 @@ def hyperparam_search():
     search.fit(Xtrain,Ytrain)
     print(search.best_params_)
     return search.cv_results_
-#print(xgbmodel())
+print(xgbmodel())
 #a = hyperparam_search()
     # {'learning_rate': 0.2,
     # 'max_depth': 4,
