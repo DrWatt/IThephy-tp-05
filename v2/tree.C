@@ -26,8 +26,10 @@ void tree::tocsv()
 	float lambdam = 1115.683;
 
 	vector<float> hplus_P;
+  vector<float> hplus_PT;
 	vector<float> hplus_E;
 	vector<float> hminus_P;
+  vector<float> hminus_PT;
 	vector<float> hminus_E;
 	vector<float> Lambda_E;
 	vector<float> hplus_P_TRUE;
@@ -60,7 +62,7 @@ void tree::tocsv()
 		clog <<a->At(i)->GetName()<< endl;
 		o << a->At(i)->GetName() << ',';
 	}
-	o << "Lambda_E,hplus_P,hminus_P,Angle,Resolution\n";
+	o << "Lambda_E,hplus_P,hminus_P,hplus_PT,hminus_PT,Angle,Resolution\n";
 
 
 
@@ -95,12 +97,16 @@ void tree::tocsv()
 	  Lambda_E.push_back(hplus_E.at(jentry)+hminus_E.at(jentry));
 	  Lambda_E_TRUE.push_back(hplus_E_TRUE.at(jentry)+hminus_E_TRUE.at(jentry));
 
+    hplus_PT.push_back(sqrt((hplus_PX*hplus_PX)+(hplus_PY*hplus_PY)));
+    hminus_PT.push_back(sqrt((hminus_PX*hminus_PX)+(hminus_PY*hminus_PY)));
+
 	  Angle.push_back(acos((hplus_TRUEP_X*hminus_TRUEP_X+hplus_TRUEP_Y*hminus_TRUEP_Y+hplus_TRUEP_Z*hminus_TRUEP_Z)/(hplus_P_TRUE.at(jentry)*hminus_P_TRUE.at(jentry))));
 
 	  Lambda_M.push_back(sqrt(Lambda_E.at(jentry)*Lambda_E.at(jentry)-(Lambda_PX.at(jentry)*Lambda_PX.at(jentry)+Lambda_PY.at(jentry)*Lambda_PY.at(jentry)+Lambda_PZ.at(jentry)*Lambda_PZ.at(jentry))));
 	  Lambda_M_TRUE.push_back(sqrt(Lambda_E_TRUE.at(jentry)*Lambda_E_TRUE.at(jentry)-(Lambda_PX_TRUE.at(jentry)*Lambda_PX_TRUE.at(jentry)+Lambda_PY_TRUE.at(jentry)*Lambda_PY_TRUE.at(jentry)+Lambda_PZ_TRUE.at(jentry)*Lambda_PZ_TRUE.at(jentry))));
 
 	  Resolution.push_back(lambdam-V0_M);
+
 
 	
 	for (int i = 0; i < a->GetEntries(); ++i)
@@ -110,6 +116,8 @@ void tree::tocsv()
 	  o << Lambda_E.at(jentry) << ',';
 	  o << hplus_P.at(jentry) << ',';
 	  o << hminus_P.at(jentry) << ',';
+    o << hplus_PT.at(jentry) << ',';
+    o << hminus_PT.at(jentry) << ',';
 	  o << Angle.at(jentry) << ',';
 	  o << Resolution.at(jentry) << ',';
 	  o << '\n';
